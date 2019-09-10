@@ -8,5 +8,6 @@ int start(int port);
 int pause();
 int stop();
 int resume();
+extern void concatString(char*, char*);
 
 #endif // Server_H

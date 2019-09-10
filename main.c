@@ -5,10 +5,16 @@
 #define NAMED_PIPE_SERVICE 9002
 #define UDP_DATE_SERVICE 9003
 
+typedef enum {start, stop, pause, resume} MODE;
+
+struct service{
+	char* name;
+	MODE mode;
+}
 
 const char* TCP_ECHO_SERVICE = "echoservice";
 const char* NAMED_PIPE = "namedpipe";
-const char* UDP_DATE = "upd";
+const char* UDP_DATE = "game";
 
 int chooseService(char*);
 int chooseAction(char*);
@@ -18,7 +24,10 @@ int performStateSwitch();
 int main(int argc, char** argv) {
 	int initValue = -1;
 	if (argc != 3) {
-		print("");
+		print("usage: main <service> <mode>\n");
+		print("service: [echoservice], [namedpipe], [game]\n");
+		print("mode: [start], [stop], [pause], [resume]\n");
+		print("e.g : main echoservice start\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -83,4 +92,6 @@ char* currentState() {}
 /*
  * Switches the operation mode of the services
  */
-int performStateSwitch() {}
+int performStateSwitch(int service, int action) {
+
+}

@@ -58,7 +58,7 @@ int start(int port) {
 						returnCode = recv(workers[0], buff, BUFFER_SIZE, 0);
 					}
 					if (returnCode == 0) {
-#ifdef __unix__
+#ifdef __unix__ || __linux__
 						close(worker[i]);
 #elif __MSDOS__ || __WIN32__ || _MSC_VER
 						closesocket(workers[i]);
@@ -94,4 +94,21 @@ int pause() {
 }
 
 int resume() {
+}
+
+/*
+ * Helpingmethod for concating two strings
+ */
+void concatString(char* source, char* add)
+{
+	while (*source)
+		source++;
+
+	while (*add)
+	{
+		*source = *add;
+		add++;
+		source++;
+	}
+	*source = '\0';
 }

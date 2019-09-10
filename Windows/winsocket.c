@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "Sockets.h"
+#include "winsocket.h"
 /*
  * Accepts an incomming Message on an listen-socket and passes it to a worker-Socket
  */
@@ -18,8 +18,8 @@ void acceptSocket(SOCKET* listener, SOCKET* worker) {
 }
 
 /*
- * This function creates a Socket-instance. Therefore it needs a familytype. 
- * Also what type of Data you want to pass, for e.g. UDP or TCP and the used 
+ * This function creates a Socket-instance. Therefore it needs a familytype.
+ * Also what type of Data you want to pass, for e.g. UDP or TCP and the used
  * handshake protocol.
  */
 SOCKET createSocket(int family, int type, int protocol) {
@@ -35,7 +35,7 @@ SOCKET createSocket(int family, int type, int protocol) {
 }
 
 /*
- * This function binds an given socket to a given address and its port 
+ * This function binds an given socket to a given address and its port
  */
 void bindSocket(SOCKET* socket, unsigned long adress, int port) {
 	SOCKADDR_IN serverAddress;

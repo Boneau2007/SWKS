@@ -1,7 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
-#include "LinuxEchoService.h"
+#include "services.h"
 
 int main(int argc, char** argv) {
-  start(8001);
+  //Starte alle in einem eigenen Thread
+  initializeServer(8001,8002);
+  startConnectionHandle();
+  //handleNamedPipeService("/tmp/fifio", O_RDWR);
 }

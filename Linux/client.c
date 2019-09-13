@@ -1,22 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
 #include "linuxsocket.h"
-
-#define END  0
-#define ECHOSERVER 1
-#define NAMEDPIPE 2
-#define GAME 3
+#include "client.h"
 
 int init = -1;
-
-void start();
-int dialog();
-void echoServerHandle();
 
 int main(int argc, char** argv){
   if(argc > 1){
@@ -37,7 +22,7 @@ void start(){
                        break;
       case NAMEDPIPE: printf("\nBegin with pipe");
                       break;
-      case GAME: printf("\nStart game..");
+      case SOUND: printf("\nStart game..");
                  break;
       case END: printf("\nClient geschlossen\n");
                  break;
@@ -54,12 +39,13 @@ int dialog(){
 	printf("\n==========================");
   printf("\n%i. Connect to Echo-Server", ECHOSERVER);
   printf("\n%i. Process through Named-pipe", NAMEDPIPE);
-  printf("\n%i. Connect to Game", GAME);
+  printf("\n%i. Connect to Game", SOUND);
   printf("\n%i. Close Client", END);
 	printf("\n==========================");
   printf("\nEnter Value: ");
-  scanf("%d", &input);
-  while (getchar() != '\n' );
+  fgets((char*)&input, 16, stdin);
+  fflush(stdin);
+  input = atoi((char*)&input);
   printf("Input was: %x",input);
   if(input >= 0 && input <= 9){
     return input;
@@ -75,15 +61,19 @@ void echoServerHandle(){
   struct sockaddr_in server;
   struct hostent* host_info;
   unsigned long address;
-  memset(&server,0,sizeof(server));
-  clientMessage = calloc(256, sizeof(char));
-  serverMessage = calloc(256, sizeof(char));
-  host = calloc(256, sizeof(char));
 
+  memset(&server,0,sizeof(server));
+  clientMessage = calloc(MAX_MESSAGE_SIZE, sizeof(char));
+  serverMessage = calloc(MAX_MESSAGE_SIZE, sizeof(char));
+  host = calloc(MAX_MESSAGE_SIZE, sizeof(char));
+
+  struct timeval time;
+  time.tv_sec = 10;
+  time.tv_usec = 0;
 
   printf("\nPlease insert IP or Host name: ");
-  scanf("%s",host);
-  while (getchar() != '\n' );
+  fgets(host, 32, stdin);
+  fflush(stdin);
   if((address = inet_addr(host))!= INADDR_NONE){
     memcpy((char *)&server.sin_addr, &address, sizeof(address));
   }else{
@@ -92,28 +82,46 @@ void echoServerHandle(){
       printf("\nUnknown Server");
       return;
     }else{
-      memcpy((char *)&server.sin_addr, &host_info->h_addr, host_info->h_length);
+      memcpy((char *)&server.sin_addr, &host_info->h_name, host_info->h_length);
     }
   }
 
   printf("\nPlease insert Port: ");
-  scanf("%d", &port);
-  while (getchar() != '\n' );
+  fgets((char*)&port, 16, stdin);
+  fflush(stdin);
+  port = atoi((char*)&port);
   server.sin_family = AF_INET;
   server.sin_port = htons(port);
 
   int socket = createSocket(AF_INET, SOCK_STREAM, 0);
+  setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&time, sizeof(time));
+  
   if(connect(socket, (struct sockaddr*)&server, sizeof(server)) != -1){
-    //recv(socket, &serverMessage, 256, 0);
-    while(strcmp(clientMessage, "END")){
-      memset(clientMessage,0,256*sizeof(char));
-      scanf("%s", clientMessage);
-      while (getchar() != '\n' );
-      send(socket, clientMessage, 256, 0);
-
-      memset(serverMessage,0,256*sizeof(char));
-      recv(socket, serverMessage, 256, 0);
+      recv(socket, serverMessage, MAX_MESSAGE_SIZE, 0);
       printf("%s", serverMessage);
+    while(1){
+      //Re-/Set messagebuffers to \0
+      memset(serverMessage,'\0',MAX_MESSAGE_SIZE*sizeof(char));
+      memset(clientMessage,'\0',MAX_MESSAGE_SIZE*sizeof(char));
+      
+      //Get Message
+      printf("\nPlease insert a Message or [CLOSE] for close: ");
+      fgets(clientMessage, MAX_MESSAGE_SIZE, stdin);
+      fflush(stdin);
+      int len = strlen(clientMessage);
+      
+      if(strncmp(clientMessage, "CLOSE", 5) == 0){
+        printf("Close connection..\n");
+        break;
+      }
+
+      write(socket, clientMessage, len);
+      if(recv(socket, serverMessage, MAX_MESSAGE_SIZE, 0)<0){
+        printf("Server response timeout\n");
+        break;
+      }else{
+        printf("%s", serverMessage);
+      }
     }
   }else{
       printf("\nCould not establish connection to the server.\n");

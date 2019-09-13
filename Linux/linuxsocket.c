@@ -1,11 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include "linuxsocket.h"
+
 /*
  * Accepts an incomming Message on an listen-socket and passes it to a worker-Socket
  */
@@ -13,12 +7,13 @@ void acceptSocket(int* listener, int* worker) {
 	struct sockaddr_in clientAddress;
 	memset(&clientAddress, 0, sizeof(clientAddress));
 	int workerlength = sizeof(worker);
-	*worker = accept(*listener, (struct sockaddr_in *)&clientAddress, &workerlength);
+	printf("Try to accept socket.. \n");
+	*worker = accept(*listener, (struct sockaddr *)&clientAddress, (socklen_t *)&workerlength);
 	if (*worker == -1) {
 		printf("Error, accept() failed.\n");
 		exit(EXIT_FAILURE);
 	}
-	printf(" New Client connection to socket, fd is [%d], Ip : [%s], port : [] \n", *worker, inet_ntoa(clientAddress.sin_addr));
+	printf(" New Client connection to socket, fd is [%d], Ip : [%s], port : [%d] \n", *worker, inet_ntoa(clientAddress.sin_addr),htons(clientAddress.sin_port));
 }
 
 /*
@@ -46,10 +41,12 @@ void bindSocket(int* socket, unsigned int address, int port) {
 	serverAddress.sin_family = AF_INET;
 	serverAddress.sin_addr.s_addr = htonl(address);
 	serverAddress.sin_port = htons(port);
-	if (bind(*socket, (struct sockaddr_in *)&serverAddress, sizeof(serverAddress)) == -1){
+	if (bind(*socket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) == -1){
 		printf("Error, couldn't bind Socket :\n");
+		exit(EXIT_FAILURE);
+	}else{
+		printf("Socket successfully bound.\n");
 	}
-	printf("Socket successfully bound.\n");
 }
 
 /*
@@ -59,8 +56,9 @@ void listenSocket(int* socket) {
 	if(listen(*socket, 0) == -1) {
 		printf("Error, couldn't set Socket in listen mode :\n");
 		exit(EXIT_FAILURE);
-	}
+	}else{
 	printf("Socket is now in listen mode.\n");
+	}
 }
 /*
  * This funktion closes a socket
@@ -69,6 +67,8 @@ void closeSocket(int* socket) {
 	if(close(*socket) == -1) {
 		printf("Error, couldn't close Socket.\n");
 		exit(EXIT_FAILURE);
+	}else{
+		printf("Socket is now closed.\n");
 	}
-	printf("Socket is now closed.\n");
+	
 }

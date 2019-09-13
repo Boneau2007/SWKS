@@ -1,5 +1,5 @@
-#ifndef LINUXECHOSERVICE_H
-#define LINUXECHOSERVICE_H
+#ifndef REGISTRY_H
+#define REGISTRY_H
 #define MAX_WORKER 20
 #define BUFF_SIZE 256
 
@@ -12,6 +12,13 @@
 #include <string.h>
 #include <sys/stat.h>      
 #include <errno.h>
+#include <alsa/asoundlib.h>
+
+#include "linuxsocket.h"
+#include "echoService.h"
+#include "pipeService.h"
+#include "soundService.h"
+
 #define MAX_COMMAND_SIZE 64
 #define STOP 1
 #define CANCEL 2
@@ -24,17 +31,8 @@ struct connection{
 };
 
 void dialog();
-
 void initializeServer(int,int);
 int startConnectionHandle();
-
-extern void handleEchoServiceConnect(struct connection* connection);
-extern void handleSoundServiceConnect(struct connection* connection);
-extern void handleNamedPipeConnect(struct connection* connection, char* path, mode_t mode);
-
-extern void handleEchoService(struct connection* connection);
-extern void handleNamedPipeService(struct connection* connection);
-extern void handleSoundService(struct connection* connection);
-
 void closeConnection(struct connection* connection);
-#endif //LINUXECHOSERVICE_H
+
+#endif //REGISTRY_H

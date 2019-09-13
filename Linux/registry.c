@@ -1,8 +1,6 @@
-#include "linuxsocket.h"
-#include "services.h"
+#include "registry.h"
 
 const char* stdWelcomeMessage = "Welcome to Echo-Server v1.0";
-char* stdReturnMessage = "Server answered: ";
 fd_set fdset;
 
 int tcpListener;
@@ -11,6 +9,9 @@ struct connection workers[MAX_WORKER];
 
 void initializeServer(int tcpPort, int udpPort){
 
+	unsigned int samples = 20000;
+	initSoundDevice("default",2,&samples);
+	
 	FD_ZERO(&fdset);
 
 	//initialize the tcp-Socket for echo service
@@ -73,7 +74,9 @@ int startConnectionHandle() {
 				printf("\nTriggered server command STOP.");
 				printf("\nServer will now shutdown.\n");
 				for(int i = 0;i < MAX_WORKER;i++){
-					closeConnection(&workers[i]);
+					if(workers[i].socketId != -1){
+						closeConnection(&workers[i]);
+					}
 				}
 				break;
 			}else if(command == CANCEL){
@@ -95,9 +98,10 @@ int startConnectionHandle() {
 			for (int i = 0; i < MAX_WORKER; i++) {
 				if (workers[i].socketId == -1) {
 					if((FD_ISSET(tcpListener, &fdset))){
-						handleEchoServiceConnect(&workers[i]);
+						workers[i].type = ECHO;
+						initEchoService(&tcpListener, &workers[i].socketId, stdWelcomeMessage);
 					}else if((FD_ISSET(udpListener, &fdset))){
-						handleSoundServiceConnect(&workers[i]);
+						handleSoundServiceConnect(&udpListener, &workers[i].socketId);
 					}
 					printf("Worker[%d] is now set \n", workers[i].socketId);
 					break;
@@ -111,7 +115,9 @@ int startConnectionHandle() {
 				if (FD_ISSET(workers[i].socketId, &fdset)) {
 					printf("\nWorker[%d] performes I\\O \n", workers[i].socketId);
 					if(workers[i].type == ECHO){
-						handleEchoService(&workers[i]);
+						if(handleEchoService(&workers[i].socketId) == EXIT_FAILURE){
+							closeConnection(&workers[i]);
+						}
 					}else if(workers[i].type == SOUND){
 						handleSoundService(&workers[i]);
 					}else if(workers[i].type == PIPE){
@@ -132,67 +138,7 @@ void closeConnection(struct connection* connection){
 	shutdown((*connection).socketId,SHUT_RDWR);
 	(*connection).socketId = -1;
 	(*connection).type = -1;
-	printf("\nConnection has been shutdown");
+	printf("\nConnection has been shutdown\n");
+	dialog();
 }
 
-void handleEchoServiceConnect(struct connection*  connection){
-	(*connection).type = ECHO;
-	acceptSocket(&tcpListener, &(*connection).socketId);
-	printf("\nSending welcome message.\n");
-	if (write((*connection).socketId, stdWelcomeMessage, strlen(stdWelcomeMessage)) == -1){
-		printf("\nError, while try to send.\n");
-	}else{
-		printf("\nWelcome message has been send.\n");
-	}
-}
-
-/*
- * This function handles the tcp communication of the echo service
- */
-void handleEchoService(struct connection* connection){
-	char* buff = (char*)calloc(BUFF_SIZE, sizeof(char));
-	char* message = (char*)calloc(BUFF_SIZE, sizeof(char));
-	int returnCode = 0;
-	if (buff) {
-		returnCode = recv((*connection).socketId, buff, BUFF_SIZE, 0);
-		printf("Worker[%d] recieved [%d] bytes \n", (*connection).socketId, returnCode);
-		if(strncmp(buff, "CLOSE",5)==0){
-			printf("Worker[%d] recieved a CLOSE call. \n", (*connection).socketId);
-			returnCode = 0;
-		}
-	}
-	if (returnCode == 0) {
-		//Shutdown all communication
-		closeConnection(connection);
-	}else {
-		if (returnCode < BUFF_SIZE - 1) {
-			if (buff) {
-				strcpy(message, stdReturnMessage);
-				strcat(message, buff);
-				printf("Send Message at worker : [%d] \n", connection->socketId);
-				write((*connection).socketId, message, strlen(message));
-				printf("Message has been send\n");
-				memset(buff,'\0', sizeof(char)*BUFF_SIZE);
-				memset(message,'\0', sizeof(char)*BUFF_SIZE);
-			}
-		}
-	}
-	free(buff);
-	free(message);
-}
-
-
-void handleSoundServiceConnect(struct connection* connection){
-}
-
-void handleSoundService(struct connection* connection) {
-}
-
-
-void handleNamedPipeConnect(struct connection*  connection, char* path, mode_t mode){
-	if(mkfifo(path, mode) == -1){
-		printf("Couldn't create fifo\n");
-	}
-}
-void handleNamedPipeService(struct connection* connection) {
-}

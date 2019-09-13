@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "services.h"
+#include "registry.h"
 
 int main(int argc, char** argv) {
   //Starte alle in einem eigenen Thread

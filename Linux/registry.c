@@ -1,17 +1,23 @@
 #include "registry.h"
 
 const char* stdWelcomeMessage = "Welcome to Echo-Server v1.0";
+const char* stdSoundWelcomeMessage = "Welcome to Sound-Server v1.0";
 fd_set fdset;
 
 int tcpListener;
 int udpListener;
+snd_pcm_t* pcmHandle;
+
 struct connection workers[MAX_WORKER];
 
 void initializeServer(int tcpPort, int udpPort){
-
-	unsigned int samples = 20000;
-	initSoundDevice("default",2,&samples);
-	
+	unsigned int samples = 44100;
+	char* deviceName = "default";
+	int channels = 1;
+ 	snd_pcm_stream_t stream = SND_PCM_STREAM_PLAYBACK;
+   	snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
+  	snd_pcm_access_t mode = SND_PCM_ACCESS_RW_INTERLEAVED;
+	snd_pcm_uframes_t frames = 32;
 	FD_ZERO(&fdset);
 
 	//initialize the tcp-Socket for echo service
@@ -27,6 +33,11 @@ void initializeServer(int tcpPort, int udpPort){
 	for (int i = 0; i < MAX_WORKER; i++) {
 		workers[i].socketId = -1;
 	}
+
+	if(initSoundDevice(&pcmHandle, deviceName,channels,&samples, stream, format, mode, frames) == EXIT_FAILURE){
+		printf("Sound Service not available.");
+		exit(EXIT_FAILURE);
+	}
 }
 
 void dialog(){
@@ -34,9 +45,7 @@ void dialog(){
 	printf("\nServer Commands: \n");
 	printf("\n%i. Shutdown server \n",STOP);
 	printf("\n%i. Close connection\n",CANCEL);
-	printf("\n==========================");
-  	printf("\nEnter Value: ");
-  	fflush(stdout);
+	printf("\n==========================\n");
 }
 int startConnectionHandle() {
 	int err;	
@@ -44,10 +53,15 @@ int startConnectionHandle() {
 	while (1) {
 		//Re-/initializing the FS_Set because of modifing through System Calls
 		FD_ZERO(&fdset);
+
 		FD_CLR(tcpListener, &fdset);
+		FD_CLR(udpListener, &fdset);
+		FD_CLR(STDIN_FILENO, &fdset);
+
 		FD_SET(tcpListener, &fdset);
 		FD_SET(udpListener, &fdset);
 		FD_SET(STDIN_FILENO, &fdset);
+		
 		for (int i = 0; i < MAX_WORKER; i++) {
 			if (workers[i].socketId != -1) {
 				FD_SET(workers[i].socketId, &fdset);
@@ -94,14 +108,12 @@ int startConnectionHandle() {
 			dialog();
 		}
 		//If some event happend on the tcp- or udp-socket 
-		if (FD_ISSET(tcpListener, &fdset) || (FD_ISSET(udpListener, &fdset))) {
+		if (FD_ISSET(tcpListener, &fdset)) {
 			for (int i = 0; i < MAX_WORKER; i++) {
 				if (workers[i].socketId == -1) {
 					if((FD_ISSET(tcpListener, &fdset))){
 						workers[i].type = ECHO;
 						initEchoService(&tcpListener, &workers[i].socketId, stdWelcomeMessage);
-					}else if((FD_ISSET(udpListener, &fdset))){
-						handleSoundServiceConnect(&udpListener, &workers[i].socketId);
 					}
 					printf("Worker[%d] is now set \n", workers[i].socketId);
 					break;
@@ -111,26 +123,29 @@ int startConnectionHandle() {
 		}
 		//Else some I\O happens on a worker-socket descriptors
 		else {
-			for (int i = 0; i <= MAX_WORKER; i++) {
-				if (FD_ISSET(workers[i].socketId, &fdset)) {
-					printf("\nWorker[%d] performes I\\O \n", workers[i].socketId);
-					if(workers[i].type == ECHO){
-						if(handleEchoService(&workers[i].socketId) == EXIT_FAILURE){
-							closeConnection(&workers[i]);
+			if(FD_ISSET(udpListener, &fdset)){
+				handleSoundService(udpListener, pcmHandle);
+			}else{
+				for (int i = 0; i <= MAX_WORKER; i++) {
+					if (FD_ISSET(workers[i].socketId, &fdset)) {
+						printf("\nWorker[%d] performes I\\O \n", workers[i].socketId);
+						if(workers[i].type == ECHO){
+							if(handleEchoService(&workers[i].socketId) == EXIT_FAILURE){
+								closeConnection(&workers[i]);
+							}
+						}else if(workers[i].type == PIPE){
+							handleNamedPipeService(&workers[i]);			
 						}
-					}else if(workers[i].type == SOUND){
-						handleSoundService(&workers[i]);
-					}else if(workers[i].type == PIPE){
-						handleNamedPipeService(&workers[i]);
-						
-					}
 					
+					}
 				}
 			}
+			
 		}
 	}
 	closeSocket(&tcpListener);
 	closeSocket(&udpListener);
+	closeSoundService(pcmHandle);
 	exit(EXIT_SUCCESS);
 }
 

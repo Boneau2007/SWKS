@@ -10,10 +10,10 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-extern int createSocket(int, int, int);
-extern void listenSocket(int*);
-extern void bindSocket(int* , unsigned int, int);
-extern void acceptSocket(int* listener, int* worker);
-extern void closeSocket(int* socket);
+extern int createSocket(int family, int type, int protocol);
+extern int listenSocket(int* socket);
+extern int bindSocket(int* socket, unsigned int address, int port);
+extern int acceptSocket(int* listener, int* worker);
+extern int closeSocket(int* socket);
 
 #endif // SOCKETS_H

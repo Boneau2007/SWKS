@@ -4,10 +4,10 @@ CC = gcc
 CFLAGS = -Wall -pedantic
 OBJ = *.o
 
-all: server client clean
+all: server client *.o
 
-client: client.o linuxsocket.o
-	${CC} ${CFLAGS} -o client client.o linuxsocket.o
+client: client.o linuxsocket.o soundService.o
+	${CC} ${CFLAGS} -o client client.o linuxsocket.o soundService.o -lasound
 
 server: main.o linuxsocket.o registry.o echoService.o pipeService.o soundService.o
 	${CC} ${CFLAGS} -o main main.o linuxsocket.o registry.o echoService.o pipeService.o soundService.o -lasound
@@ -34,6 +34,9 @@ main.o:
 		${CC} ${CFLAGS} -c main.c
 
 # Bereinigung des Verzeichnisses
-clean:
+*.o:
 	@ echo "\nLösche dateien mit Endung ${OBJ}"
 	rm -f ${OBJ}
+ clean: *.o
+	@ echo "\nLösche alle Artefakte"
+	rm -f main client

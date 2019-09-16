@@ -8,7 +8,7 @@
 #include "linuxsocket.h"
 #define BUFF_SIZE 256
 
-extern void initEchoService(int* listenerSocket, int* workerSocket, const char* message);
-extern int handleEchoService(int* workerSocket);
+extern int initEchoService(int* listener, int* worker, const char* message);
+extern int handleEchoService(int* socket);
 
 #endif //ECHOSERVICE_H

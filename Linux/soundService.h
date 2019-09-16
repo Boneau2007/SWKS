@@ -2,17 +2,13 @@
 #define SOUNDSERVICE_H
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <string.h>    
-#include <errno.h>
 #include <alsa/asoundlib.h>
 #include "linuxsocket.h"
-#include "echoService.h"
 
-extern void initSoundDevice(const char* name, int channels, unsigned int* sampleRate);
-extern void handleSoundServiceConnect(int* listenerSocket, int* workerSocket);
-extern void handleSoundService();
+extern int initSoundDevice(snd_pcm_t** handle, const char* deviceName, int channels, unsigned int * sampleRate,snd_pcm_stream_t stream,
+                                  snd_pcm_format_t format, snd_pcm_access_t mode,
+                                  snd_pcm_uframes_t frames);
+extern void handleSoundService(int socket, snd_pcm_t* pcmHandle);
+extern void closeSoundService(snd_pcm_t* pcmHandle);
 
 #endif //SOUNDSERVICE_H

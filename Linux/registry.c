@@ -6,11 +6,12 @@ fd_set fdset;
 
 int tcpListener;
 int udpListener;
+int pipeListener;
 snd_pcm_t* pcmHandle;
 
 struct connection workers[MAX_WORKER];
 
-void initializeServer(int tcpPort, int udpPort){
+void initializeServer(int tcpPort, int udpPort, const char* path, int permission){
 	unsigned int samples = 44100;
 	char* deviceName = "default";
 	int channels = 1;
@@ -20,7 +21,7 @@ void initializeServer(int tcpPort, int udpPort){
 	snd_pcm_uframes_t frames = 32;
 	FD_ZERO(&fdset);
 
-	//initialize the tcp-Socket for echo service
+	//initialize the tcp-Socket for echo-service
 	tcpListener = createSocket(AF_INET, SOCK_STREAM, 0);
 	bindSocket(&tcpListener, INADDR_ANY, tcpPort);
 	listenSocket(&tcpListener);
@@ -34,6 +35,10 @@ void initializeServer(int tcpPort, int udpPort){
 		workers[i].socketId = -1;
 	}
 
+	if((initNamedPipe(path, permission))==EEXIST){
+		printf("");
+	}
+
 	if(initSoundDevice(&pcmHandle, deviceName,channels,&samples, stream, format, mode, frames) == EXIT_FAILURE){
 		printf("Sound Service not available.");
 		exit(EXIT_FAILURE);
@@ -44,6 +49,7 @@ void dialog(){
 	printf("\n==========================");
 	printf("\nServer Commands: \n");
 	printf("\n%i. Shutdown server \n",STOP);
+	printf("\n%i. Communicate through named-pipe\n",PIPES);
 	printf("\n%i. Close connection\n",CANCEL);
 	printf("\n==========================\n");
 }
@@ -107,13 +113,16 @@ int startConnectionHandle() {
 			}
 			dialog();
 		}
-		//If some event happend on the tcp- or udp-socket 
-		if (FD_ISSET(tcpListener, &fdset)) {
+		//If some event happend on the tcp-socket
+		if (FD_ISSET(tcpListener, &fdset)|| FD_ISSET(pipeListener, &fdset)) {
 			for (int i = 0; i < MAX_WORKER; i++) {
 				if (workers[i].socketId == -1) {
 					if((FD_ISSET(tcpListener, &fdset))){
 						workers[i].type = ECHO;
 						initEchoService(&tcpListener, &workers[i].socketId, stdWelcomeMessage);
+					}else if((FD_ISSET(pipeListener, &fdset))){
+						workers[i].type = PIPE;
+						connectToPipeService(&pipeListener, &workers[i].socketId);
 					}
 					printf("Worker[%d] is now set \n", workers[i].socketId);
 					break;

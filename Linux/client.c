@@ -120,19 +120,16 @@ void soundServiceHandle(){
   int socket = createSocket(AF_INET, SOCK_DGRAM, 0);
   long size = (frames * snd_pcm_format_width(format)) / 8 * 2;
   char* message = calloc(size, sizeof(char)); // bytes/sample, channels
-  for(int i = 0; i < 5000000; i++) {
-    
+  time_t count = 5; 
+  time_t start = time(NULL);
+  do{
     if(snd_pcm_readi(pcmHandle, message, size)<0){
       snd_pcm_prepare(pcmHandle);
       printf("##### buffer underrun #####");
     }else{
-      //int length = strlen(message);
-      //printf("Size is: [%d]\n", size);
-      //printf("Message length: [%d]\n", length);
-      //printf("Message: [%s] with length: [%d]\n", message, length);
       sendto(socket, message, size, MSG_WAITALL, (const struct sockaddr*)&serverAddress, sizeof(serverAddress));
     }
-  }
+  }while( time(NULL)-start < count);
   snd_pcm_close (pcmHandle);
 }
 

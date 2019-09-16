@@ -21,9 +21,10 @@
 
 #define MAX_COMMAND_SIZE 64
 #define STOP 1
-#define CANCEL 2
+#define PIPES 2
+#define CANCEL 3
 
-enum connectionType {ECHO, SOUND, PIPE} ; 
+enum connectionType {ECHO, PIPE} ; 
 
 struct connection{
 	int socketId;

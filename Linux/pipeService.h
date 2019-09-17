@@ -8,11 +8,14 @@
 #include <sys/stat.h> 
 #include <sys/types.h> 
 #include <unistd.h> 
-#include <errno.h> 
-#include "linuxsocket.h"
+#include <string.h>
+#include <errno.h>
 
-extern int initNamedPipe(char* path, mode_t mode);
-extern void connectToPipeService(int* worker,char* path, int mode);
-extern void handleNamedPipeService();
+
+extern void itoa(int input, char *buffer, int radix);
+extern int initNamedPipe(const char* path, mode_t mode);
+extern void openPipeService(int* reader, const char* path);
+extern void handleNamedPipeServiceRead(int * worker);
+extern void handleNamedPipeServiceWrite(int * worker);
 
 #endif //PIPESERVICE_H

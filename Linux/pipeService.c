@@ -1,9 +1,6 @@
 #include "pipeService.h"
 
-char inputbuffer[MAX_BUFF_SIZE];
-char outputbuffer[MAX_BUFF_SIZE];
-
-int initNamedPipe(char* path, mode_t mode){
+int initNamedPipe(const char* path, mode_t mode){
 	if(mkfifo(path, mode) == -1){
 		printf("An error has occured\n");
 		switch(errno){
@@ -31,13 +28,22 @@ int initNamedPipe(char* path, mode_t mode){
 	return EXIT_SUCCESS;
 }
 
-void connectToPipeService(int* worker,char* path, int mode){
-	*worker = open(path, mode);
-
+void openPipeService(int* reader, const char* path){
+	*reader = open(path, O_RDONLY | O_NONBLOCK);
 }
 
-void handleNamedPipeService(int* worker) {
-	read(worker, inputbuffer, MAX_BUFF_SIZE);
+void handleNamedPipeServiceWrite(int* worker) {
+	char buffer[MAX_BUFF_SIZE];
+	int pid = getpid();    
+	sprintf(buffer, "%d: ", pid);
+	fgets((char*)&buffer, MAX_BUFF_SIZE-sizeof(pid), stdin);
+	fflush(stdin);
+	write(*worker, buffer, MAX_BUFF_SIZE);
+}
+void handleNamedPipeServiceRead(int* worker) {
+	char buffer[MAX_BUFF_SIZE];
+	read(*worker, buffer, MAX_BUFF_SIZE);
+	printf("Pipe-Input: %s\n",buffer);
 }
 
 void closeNamedPipeService(int* worker){

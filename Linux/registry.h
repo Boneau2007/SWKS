@@ -24,16 +24,16 @@
 #define PIPES 2
 #define CANCEL 3
 
-enum connectionType {ECHO, PIPE} ; 
+enum pipeType {READ, WRITE} ; 
 
 struct connection{
 	int socketId;
-	enum connectionType type;
+	enum pipeType type;
 };
 
-void dialog();
-void initializeServer(int,int);
-int startConnectionHandle();
-void closeConnection(struct connection* connection);
+extern void dialog();
+extern int initializeServer(int,int,const char*, int);
+extern int startConnectionHandle();
+extern void closeConnection(int* socket);
 
 #endif //REGISTRY_H

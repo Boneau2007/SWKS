@@ -22,15 +22,12 @@ int main(int argc, char** argv){
 
 void start(){
   while(init != END){
-  //init = dialog();
-  init = 3; // Nur zum test
+  init = dialog();
+  //init = 3; // Nur zum test
     switch (init) {
       case ECHOSERVER: printf("\nStart connection to Echo-Server now..\n");
                        echoServiceHandle();
                        break;
-      case NAMEDPIPE: printf("\nProcess pipe");
-                  namedPipeHandle();
-                      break;
       case SOUND: printf("\nStart Sound connection..\n");
                   if(initSoundDevice(&pcmHandle,deviceName,channels,&samples, stream, format, mode, frames)==EXIT_FAILURE){
                     printf("Could not set PCM-Device");
@@ -48,19 +45,12 @@ void start(){
 
 
 int dialog(){
-  int input;
 	printf("\n==========================");
   printf("\n%i. Connect to Echo-Server", ECHOSERVER);
-  printf("\n%i. Process through Named-pipe", NAMEDPIPE);
   printf("\n%i. Speak to Server", SOUND);
   printf("\n%i. Close Client", END);
 	printf("\n==========================");
-  printf("\nEnter Value: ");
-      fflush(stdin);
-  fgets((char*)&input, 16, stdin);
-  fflush(stdin);
-  input = atoi((char*)&input);
-  printf("Input was: %x",input);
+  int input = getInt("\nEnter Value: ");
   if(input >= 0 && input <= 9){
     return input;
   }
@@ -120,7 +110,7 @@ void soundServiceHandle(){
   int socket = createSocket(AF_INET, SOCK_DGRAM, 0);
   long size = (frames * snd_pcm_format_width(format)) / 8 * 2;
   char* message = calloc(size, sizeof(char)); // bytes/sample, channels
-  time_t count = 5; 
+  time_t count = getInt("\nHow many seconds do you want to Speak : ");
   time_t start = time(NULL);
   do{
     if(snd_pcm_readi(pcmHandle, message, size)<0){
@@ -133,17 +123,13 @@ void soundServiceHandle(){
   snd_pcm_close (pcmHandle);
 }
 
-void namedPipeHandle(){}
-
 void setServerAddress(struct sockaddr_in* server){
   struct hostent* host_info;
   unsigned long address;
-  int port;
   char* host = calloc(MAX_MESSAGE_SIZE, sizeof(char));
 
   printf("\nPlease insert IP or Host name: ");
   fgets(host, 32, stdin);
-  //host = "127.0.0.1";
   fflush(stdin);
   if((address = inet_addr(host))!= INADDR_NONE){
     memcpy((char *)&server->sin_addr, &address, sizeof(address));
@@ -156,13 +142,17 @@ void setServerAddress(struct sockaddr_in* server){
       memcpy((char *)&server->sin_addr, &host_info->h_name, host_info->h_length);
     }
   }
-
-  printf("\nPlease insert Port: ");
-  fgets((char*)&port, 16, stdin);
-  //port = 8002;
-  fflush(stdin);
-  
-  port = atoi((char*)&port);
+  int port = getInt("\nPlease insert Port: ");
   server->sin_family = AF_INET;
   server->sin_port = htons(port);
+}
+
+int getInt(const char* message){
+  printf("%s",message);
+  long value;
+  fflush(stdin);
+  fgets((char*)&value, sizeof(value)-1, stdin);
+  fflush(stdin);
+  value = atoi((char*)&value);
+  return value;
 }

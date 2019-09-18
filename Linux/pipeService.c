@@ -25,6 +25,7 @@ int initNamedPipe(const char* path, mode_t mode){
 		}
 		return EXIT_FAILURE;
 	}
+	
 	return EXIT_SUCCESS;
 }
 
@@ -32,18 +33,29 @@ void openPipeService(int* reader, const char* path){
 	*reader = open(path, O_RDONLY | O_NONBLOCK);
 }
 
-void handleNamedPipeServiceWrite(int* worker) {
-	char buffer[MAX_BUFF_SIZE];
-	int pid = getpid();    
-	sprintf(buffer, "%d: ", pid);
-	fgets((char*)&buffer, MAX_BUFF_SIZE-sizeof(pid), stdin);
+void handleNamedPipeServiceWrite(int worker,int reader, const char* path) {
+	char buffer[MAX_BUFF_SIZE];		
+	char message[MAX_BUFF_SIZE];	
+	char pidBuff[16];
+	close(reader);
+	worker = open(path, O_WRONLY);
+	sprintf(pidBuff,"Server with Pid [%d]: ",getpid());
+	fgets((char*)&buffer, MAX_BUFF_SIZE, stdin);
 	fflush(stdin);
-	write(*worker, buffer, MAX_BUFF_SIZE);
+	strncpy(message, pidBuff, strlen(pidBuff));
+	strncat(message, buffer, strlen(buffer));
+	write(worker, message, strlen(message));
+	close(worker);
+	openPipeService(&reader, path);
 }
-void handleNamedPipeServiceRead(int* worker) {
-	char buffer[MAX_BUFF_SIZE];
-	read(*worker, buffer, MAX_BUFF_SIZE);
-	printf("Pipe-Input: %s\n",buffer);
+void handleNamedPipeServiceRead(int worker, const char* path) {
+	char * buffer = calloc (MAX_BUFF_SIZE, sizeof(char));
+	read(worker, buffer, MAX_BUFF_SIZE);
+	printf("##########\n");
+	printf("Pipe-Input:\n%s",buffer);
+	printf("##########\n");
+	close(worker);
+	openPipeService(&worker, path);
 }
 
 void closeNamedPipeService(int* worker){

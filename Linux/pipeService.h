@@ -15,7 +15,8 @@
 extern void itoa(int input, char *buffer, int radix);
 extern int initNamedPipe(const char* path, mode_t mode);
 extern void openPipeService(int* reader, const char* path);
-extern void handleNamedPipeServiceRead(int * worker);
-extern void handleNamedPipeServiceWrite(int * worker);
+extern void closeNamedPipeService(int* worker);
+extern void handleNamedPipeServiceRead(int worker, const char* path);
+extern void handleNamedPipeServiceWrite(int worker,int reader, const char* path);
 
 #endif //PIPESERVICE_H

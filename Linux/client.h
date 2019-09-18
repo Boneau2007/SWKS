@@ -16,14 +16,13 @@
 
 #define END  0
 #define ECHOSERVER 1
-#define NAMEDPIPE 2
-#define SOUND 3
+#define SOUND 2
 #define MAX_MESSAGE_SIZE 32
 
 extern void start();
 extern int dialog();
+extern int getInt(const char* message);
 extern void echoServiceHandle();
-extern void namedPipeHandle();
 extern void soundServiceHandle();
 extern void setServerAddress(struct sockaddr_in* server);
 #endif //CLIENT_H

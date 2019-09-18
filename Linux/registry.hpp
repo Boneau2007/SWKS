@@ -13,6 +13,8 @@
 #include <sys/stat.h>      
 #include <errno.h>
 #include <alsa/asoundlib.h>
+#include <iostream>       // std::cout
+#include <thread>         // std::thread
 
 #include "linuxsocket.h"
 #include "echoService.h"
@@ -32,11 +34,8 @@ struct connection{
 };
 
 extern void dialog();
-extern int initTcpSocket(int port);
-extern int initUdpSocket(int port);
-extern int initPipe(const char*, int);
-extern int initSound();
-extern int startConnectionHandle(int* tcpListener, int* udpListener, const char* path);
+extern int initializeServer(int,int,const char*, int);
+extern int startConnectionHandle();
 extern void closeConnection(int* socket);
 
 #endif //REGISTRY_H

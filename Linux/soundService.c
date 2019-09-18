@@ -1,8 +1,5 @@
 #include "soundService.h"
 
-char* data;
-
-
 /*
  * @function	handleSoundService
  * @abstract	Handles communication
@@ -12,14 +9,13 @@ char* data;
  */
 void handleSoundService(int socket, snd_pcm_t* pcmHandle) {
   int length = 16;
-  data = realloc(data ,length*sizeof(char));
+  char * data = calloc(length ,sizeof(char));
   length = read(socket, data, length);
-  // printf("Received Udp-length: [%d]\n",length);
-  // printf("Size of data: [%d]\n",strlen(data));
   while ((snd_pcm_writei(pcmHandle, data, length)) < 0) {
     snd_pcm_prepare(pcmHandle);
     printf("<##### buffer underrun #####>\n");
   }
+  free(data);
 }
 
 /*
@@ -41,7 +37,6 @@ int initSoundDevice(snd_pcm_t** handle, const char* deviceName, int channels, un
   
   snd_pcm_hw_params_t* params;
   unsigned int pcmFd; 
-  data = calloc(128, sizeof(char));
 
   snd_pcm_hw_params_alloca(&params);
 
@@ -123,5 +118,4 @@ void closeSoundService(snd_pcm_t* pcmHandle) {
   snd_pcm_close(pcmHandle);
 
   //free data buffer
-  free(data);
 }

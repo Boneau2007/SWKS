@@ -15,7 +15,6 @@ char* stdReturnMessage = "Server answered: ";
  */
 int initEchoService(int* listener, int* worker, const char* message){
 	acceptSocket(listener, worker);
-	printf("\nSending welcome message.\n");
 	if (write(*worker, message, strlen(message)) == -1){
 		printf("\nError, while try to send.\n");
 		return EXIT_FAILURE;
@@ -45,25 +44,25 @@ int handleEchoService(int* socket){
 		}
 	}
 	if (messageLength == 0) {
+		free(buff);
 		free(message);
 		return EXIT_FAILURE;
 	}else {
 		if (messageLength < BUFF_SIZE - 1) {
 			if (buff) {
-				strcpy(message, stdReturnMessage);
-				strcat(message, buff);
+				strncpy(message, stdReturnMessage, strlen(stdReturnMessage));
+				strncat(message, buff, strlen(buff));
 				printf("Send Message at worker : [%d] \n", *socket);
 				write(*socket, message, strlen(message));
 				printf("Message has been send\n");
-				memset(buff,'\0', sizeof(char)*BUFF_SIZE);
-				memset(message,'\0', sizeof(char)*BUFF_SIZE);
 			}
 		}else{
 			char* errorMsg = "Message was to large to send";
 			write(*socket, errorMsg, strlen(errorMsg));
 			return EXIT_FAILURE;
 		}
+	}
+	free(buff);
 	free(message);
 	return EXIT_SUCCESS;
-	}
 }

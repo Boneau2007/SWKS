@@ -1,5 +1,5 @@
-#ifndef REGISTRY_H
-#define REGISTRY_H
+#ifndef REGISTRY_HPP
+#define REGISTRY_HPP
 #define MAX_WORKER 20
 #define BUFF_SIZE 256
 
@@ -16,10 +16,16 @@
 #include <iostream>       // std::cout
 #include <thread>         // std::thread
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "linuxsocket.h"
 #include "echoService.h"
 #include "pipeService.h"
 #include "soundService.h"
+#ifdef __cplusplus
+}
+#endif 
 
 #define MAX_COMMAND_SIZE 64
 #define STOP 1
@@ -34,8 +40,12 @@ struct connection{
 };
 
 extern void dialog();
-extern int initializeServer(int,int,const char*, int);
-extern int startConnectionHandle();
-extern void closeConnection(int* socket);
+extern int startConnectionHandle(int* tcpListener, int* udpListener, const char* path);
+extern int initTcpSocket(int port);
+extern int initUdpSocket(int port);
+extern int initPipe(const char*, int);
+extern int initSound();
 
-#endif //REGISTRY_H
+void echoService(int* tcpListener);
+extern void closeConnection(int* socket);
+#endif //REGISTRY_HPP

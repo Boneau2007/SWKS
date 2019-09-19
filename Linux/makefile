@@ -1,22 +1,29 @@
 # Makefile für main
 
 CC = gcc
+G++ = g++
 CFLAGS = -Wall -pedantic
 OBJ = *.o
 
-all: server client *.o
+all: client server serverT *.o
 
 client: client.o linuxsocket.o soundService.o 
 	${CC} ${CFLAGS} -o client client.o linuxsocket.o soundService.o -lasound
 
 server: main.o linuxsocket.o registry.o echoService.o pipeService.o soundService.o 
-	${CC} ${CFLAGS} -o main main.o linuxsocket.o registry.o echoService.o pipeService.o soundService.o -lasound
+	${CC} ${CFLAGS} -o server main.o linuxsocket.o registry.o echoService.o pipeService.o soundService.o -lasound 
+
+serverT: mainT.o linuxsocket.o registryT.o echoService.o pipeService.o soundService.o 
+	${G++} ${CFLAGS} -o serverT mainT.o linuxsocket.o registryT.o echoService.o pipeService.o soundService.o -lasound -pthread
 
 linuxsocket.o:
 	${CC} ${CFLAGS} -c linuxsocket.c
 
 registry.o:
 	${CC} ${CFLAGS} -c registry.c
+
+registryT.o:
+	${G++} ${CFLAGS} -std=c++11 -c registryT.cpp
 
 echoService.o:
 	${CC} ${CFLAGS} -c echoService.c
@@ -33,10 +40,13 @@ client.o:
 main.o:
 	${CC} ${CFLAGS} -c main.c
 
+mainT.o:
+	${G++} ${CFLAGS} -std=c++11 -c mainT.cpp
+
 # Bereinigung des Verzeichnisses
 *.o:
 	@ echo "\nLösche dateien mit Endung ${OBJ}"
 	rm -f ${OBJ}
- clean: *.o
+ clean:
 	@ echo "\nLösche alle Artefakte"
-	rm -f main client
+	rm -f ${OBJ} server serverT client

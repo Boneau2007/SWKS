@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "registry.h"
+#include "registryT.hpp"
 
 int main(int argc, char** argv) {
   if(argc != 5){

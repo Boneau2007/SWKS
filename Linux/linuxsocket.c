@@ -1,10 +1,6 @@
 #include "linuxsocket.h"
 
 /*
- * Accepts an incomming Message on an listen-socket and passes it to a worker-Socket
- */
-
-/*
  * @function	acceptSocket
  * @abstract	Accepts a client connection
  * @discuss 	This function accepts the client connection and passes it from the

@@ -1,5 +1,14 @@
 #include "pipeService.h"
 
+/*
+ * @function	initNamedPipe
+ * @abstract	Accepts a client connection
+ * @discuss 	This function accepts the client connection and passes it from the
+ * 				listing socket to another socket.
+ * @param		listener	Pointer-Id of the listing-socket
+ * @param		worker		Pointer-Id of the working-socket
+ * @result		Results an EXIT_FAILURE or EXIT_SUCCESS
+ */
 int initNamedPipe(const char* path, mode_t mode){
 	if(mkfifo(path, mode) == -1){
 		printf("An error has occured\n");
@@ -29,15 +38,19 @@ int initNamedPipe(const char* path, mode_t mode){
 	return EXIT_SUCCESS;
 }
 
-void openPipeService(int* reader, const char* path){
-	*reader = open(path, O_RDONLY | O_NONBLOCK);
-}
-
-void handleNamedPipeServiceWrite(int worker,int reader, const char* path) {
+/*
+ * @function	handleNamedPipeServiceWrite
+ * @abstract	Accepts a client connection
+ * @discuss 	This function accepts the client connection and passes it from the
+ * 				listing socket to another socket.
+ * @param		listener	Pointer-Id of the file-descriptor
+ * @param		path		Path of the Named-Pipe
+ */
+void handleNamedPipeServiceWrite(int worker,int *reader, const char* path) {
 	char buffer[MAX_BUFF_SIZE];		
 	char message[MAX_BUFF_SIZE];	
 	char pidBuff[16];
-	close(reader);
+	close(*reader);
 	worker = open(path, O_WRONLY);
 	sprintf(pidBuff,"Server with Pid [%d]: ",getpid());
 	fgets((char*)&buffer, MAX_BUFF_SIZE, stdin);
@@ -46,18 +59,23 @@ void handleNamedPipeServiceWrite(int worker,int reader, const char* path) {
 	strncat(message, buffer, strlen(buffer));
 	write(worker, message, strlen(message));
 	close(worker);
-	openPipeService(&reader, path);
+	*reader = open(path, O_RDONLY | O_NONBLOCK);
 }
-void handleNamedPipeServiceRead(int worker, const char* path) {
+
+/*
+ * @function	handleNamedPipeServiceRead
+ * @abstract	Accepts a client connection
+ * @discuss 	This function accepts the client connection and passes it from the
+ * 				listing socket to another socket.
+ * @param		listener	Pointer-Id of the file-descriptor
+ * @param		path		Path of the Named-Pipe
+ */
+void handleNamedPipeServiceRead(int* reader, const char* path) {
 	char * buffer = calloc (MAX_BUFF_SIZE, sizeof(char));
-	read(worker, buffer, MAX_BUFF_SIZE);
+	read(*reader, buffer, MAX_BUFF_SIZE);
 	printf("##########\n");
 	printf("Pipe-Input:\n%s",buffer);
 	printf("##########\n");
-	close(worker);
-	openPipeService(&worker, path);
-}
-
-void closeNamedPipeService(int* worker){
-	close(*worker);
+	close(*reader);
+	*reader = open(path, O_RDONLY | O_NONBLOCK);
 }

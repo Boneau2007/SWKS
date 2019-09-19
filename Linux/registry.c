@@ -1,10 +1,6 @@
 #include "registry.h"
 
-const char* stdWelcomeMessage = "Welcome to Echo-Server v1.0\n";
-fd_set fdset;
 snd_pcm_t* pcmHandle;
-
-
 int initTcpSocket(int port){
 	int tcpSocket;
 	if((tcpSocket = createSocket(AF_INET, SOCK_STREAM, 0)) < 0){
@@ -78,10 +74,11 @@ void dialog(){
 	printf("\n==========================\n");
 }
 int startConnectionHandle(int* tcpListener, int* udpListener, const char* path) {
+	const char* stdWelcomeMessage = "Welcome to Echo-Server v1.0\n";
+	fd_set fdset;
 	int err;
-	int pipeListener;
 	int workers[MAX_WORKER];
-	openPipeService(&pipeListener, path);
+	int pipeListener = open(path, O_RDONLY | O_NONBLOCK);
 	//Initialize the worker sockets
 	for (int i = 0; i < MAX_WORKER; i++) {
 		workers[i] = -1;
@@ -138,7 +135,7 @@ int startConnectionHandle(int* tcpListener, int* udpListener, const char* path) 
 			}else if(command == PIPES){
 				for(int i = 0;i < MAX_WORKER;i++){
 					if(workers[i] == -1){
-						handleNamedPipeServiceWrite(workers[i],pipeListener,path);
+						handleNamedPipeServiceWrite(workers[i],&pipeListener,path);
 						break;
 					}
 				}
@@ -160,7 +157,7 @@ int startConnectionHandle(int* tcpListener, int* udpListener, const char* path) 
 				printf("\nHandle udp-listener : [%d]\n", *udpListener);
 				handleSoundService(*udpListener, pcmHandle);
 		}else if(FD_ISSET(pipeListener, &fdset)){
-				handleNamedPipeServiceRead(pipeListener, path);
+				handleNamedPipeServiceRead(&pipeListener, path);
 		}else if (FD_ISSET(*tcpListener, &fdset)) {
 			for (int i = 0; i < MAX_WORKER; i++) {
 				if (workers[i] == -1) {

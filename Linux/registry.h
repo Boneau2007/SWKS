@@ -32,11 +32,11 @@ struct connection{
 };
 
 extern void dialog();
+extern int startConnectionHandle(int* tcpListener, int* udpListener, const char* path);
+extern void closeConnection(int* socket);
 extern int initTcpSocket(int port);
 extern int initUdpSocket(int port);
 extern int initPipe(const char*, int);
 extern int initSound();
-extern int startConnectionHandle(int* tcpListener, int* udpListener, const char* path);
-extern void closeConnection(int* socket);
 
 #endif //REGISTRY_H

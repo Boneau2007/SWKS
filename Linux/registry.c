@@ -79,11 +79,15 @@ int startConnectionHandle(int* tcpListener, int* udpListener, const char* path) 
 	int err;
 	int workers[MAX_WORKER];
 	int pipeListener = open(path, O_RDONLY | O_NONBLOCK);
+	if (pipeListener < 0){
+		printf("pipe could no be opened : [%d]", errno);
+		return errno;
+	}
 	//Initialize the worker sockets
 	for (int i = 0; i < MAX_WORKER; i++) {
 		workers[i] = -1;
 	}
-
+	fcntl(*tcpListener, F_SETFL, O_NONBLOCK);
 	dialog();
 	while (1) {
 		//Re-/initializing the FS_Set because of modifing through System Calls
@@ -98,7 +102,7 @@ int startConnectionHandle(int* tcpListener, int* udpListener, const char* path) 
 		FD_SET(*udpListener, &fdset);
 		FD_SET(pipeListener, &fdset);
 		FD_SET(STDIN_FILENO, &fdset);
-		
+		printf("fd:[%d]", pipeListener);
 		for (int i = 0; i < MAX_WORKER; i++) {
 			if (workers[i] != -1) {
 				FD_SET(workers[i], &fdset);
@@ -185,11 +189,3 @@ int startConnectionHandle(int* tcpListener, int* udpListener, const char* path) 
 	closeSoundService(pcmHandle);
 	exit(EXIT_SUCCESS);
 }
-
-void closeConnection(int* socket){
-	shutdown(*socket,SHUT_RDWR);
-	*socket = -1;
-	printf("\nConnection has been shutdown\n");
-	dialog();
-}
-

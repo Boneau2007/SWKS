@@ -15,6 +15,9 @@
 #include <alsa/asoundlib.h>
 #include <iostream>       // std::cout
 #include <thread>         // std::thread
+#include <future>         // std::future
+#include <queue>         // std::queue
+#include <mutex>         // std::mutex
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,6 +35,7 @@ extern "C" {
 #define PIPES 2
 #define CANCEL 3
 
+
 enum pipeType {READ, WRITE} ; 
 
 struct connection{
@@ -39,13 +43,18 @@ struct connection{
 	enum pipeType type;
 };
 
-extern void dialog();
+using namespace std;
+
 extern int startConnectionHandle(int* tcpListener, int* udpListener, const char* path);
 extern int initTcpSocket(int port);
 extern int initUdpSocket(int port);
 extern int initPipe(const char*, int);
 extern int initSound();
 
-void echoService(int* tcpListener);
+extern void executeTcpThread(int tcpListener);
+extern void executeUdpThread(int udpListener);
+extern void executePipeThreadRead(const char * path);
+extern void echoService(int* tcpListener);
+extern int getInt(const char* message);
 extern void closeConnection(int* socket);
 #endif //REGISTRY_HPP

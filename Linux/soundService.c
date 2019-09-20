@@ -7,15 +7,20 @@
  * @param		  int         socket-Id   
  * @param		  snd_pcm_t		pmHandle
  */
-void handleSoundService(int socket, snd_pcm_t* pcmHandle) {
+int handleSoundService(int socket, snd_pcm_t* pcmHandle) {
   int length = 16;
   char * data = calloc(length ,sizeof(char));
-  length = read(socket, data, length);
-  while ((snd_pcm_writei(pcmHandle, data, length)) < 0) {
-    snd_pcm_prepare(pcmHandle);
-    printf("<##### buffer underrun #####>\n");
+  if((length = read(socket, data, length)) >= 0){ 
+    while ((snd_pcm_writei(pcmHandle, data, length)) < 0) {
+      snd_pcm_prepare(pcmHandle);
+      printf("<##### buffer underrun #####>\n");
+    }
+    free(data);
+    return -1;
+  }else{
+    free(data);
+    return EXIT_FAILURE;
   }
-  free(data);
 }
 
 /*

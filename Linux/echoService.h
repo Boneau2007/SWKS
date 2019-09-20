@@ -10,5 +10,5 @@
 
 extern int initEchoService(int* listener, int* worker, const char* message);
 extern int handleEchoService(int* socket);
-
+extern void closeConnection(int* socket);
 #endif //ECHOSERVICE_H

@@ -52,9 +52,10 @@ void handleNamedPipeServiceWrite(int worker,int *reader, const char* path) {
 	char pidBuff[16];
 	close(*reader);
 	worker = open(path, O_WRONLY);
-	sprintf(pidBuff,"Server with Pid [%d]: ",getpid());
+	printf("\n Write to Pipe ~>");
 	fgets((char*)&buffer, MAX_BUFF_SIZE, stdin);
 	fflush(stdin);
+	sprintf(pidBuff,"Server with Pid [%d]: ",getpid());
 	strncpy(message, pidBuff, strlen(pidBuff));
 	strncat(message, buffer, strlen(buffer));
 	write(worker, message, strlen(message));
@@ -73,9 +74,12 @@ void handleNamedPipeServiceWrite(int worker,int *reader, const char* path) {
 void handleNamedPipeServiceRead(int* reader, const char* path) {
 	char * buffer = calloc (MAX_BUFF_SIZE, sizeof(char));
 	read(*reader, buffer, MAX_BUFF_SIZE);
-	printf("##########\n");
-	printf("Pipe-Input:\n%s",buffer);
-	printf("##########\n");
-	close(*reader);
-	*reader = open(path, O_RDONLY | O_NONBLOCK);
+	if(strlen(buffer) > 0){
+		printf("##########\n");
+		printf("Pipe-Input:\n%s",buffer);
+		printf("##########\n");
+		close(*reader);
+		*reader = open(path, O_RDONLY | O_NONBLOCK);
+	}
+	free(buffer);
 }

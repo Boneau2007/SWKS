@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <errno.h>
 
 extern int createSocket(int family, int type, int protocol);
 extern int listenSocket(int* socket);

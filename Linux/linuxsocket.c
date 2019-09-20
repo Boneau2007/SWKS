@@ -13,13 +13,15 @@ int acceptSocket(int* listener, int* worker) {
 	struct sockaddr_in clientAddress;
 	memset(&clientAddress, 0, sizeof(clientAddress));
 	int workerlength = sizeof(worker);
-	printf("Try to accept socket.. \n");
-	*worker = accept(*listener, (struct sockaddr *)&clientAddress, (socklen_t *)&workerlength);
-	if (*worker == -1) {
-		printf("Error, accept() failed.\n");
-		return EXIT_FAILURE;
+	if ((*worker = accept(*listener, (struct sockaddr *)&clientAddress, (socklen_t *)&workerlength)) == -1) {
+		switch (errno){
+		case EWOULDBLOCK: printf("\nOperation desn't block. Try again\n");
+						  return EWOULDBLOCK;
+		default: printf("\nError, accept() failed.\n");
+				 return -1;
+		}
 	}else{
-		printf(" New Client connection to socket, fd is [%d], Ip : [%s], port : [%d] \n", *worker, inet_ntoa(clientAddress.sin_addr),htons(clientAddress.sin_port));
+		printf("\nNew Client connection to socket, fd is [%d], Ip : [%s], port : [%d] \n", *worker, inet_ntoa(clientAddress.sin_addr),htons(clientAddress.sin_port));
 		return EXIT_SUCCESS;
 	}
 }

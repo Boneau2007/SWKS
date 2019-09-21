@@ -13,7 +13,7 @@ int handleSoundService(int socket, snd_pcm_t* pcmHandle) {
   if((length = read(socket, data, length)) >= 0){ 
     while ((snd_pcm_writei(pcmHandle, data, length)) < 0) {
       snd_pcm_prepare(pcmHandle);
-      printf("<##### buffer underrun #####>\n");
+      fprintf(stderr,"<##### buffer underrun #####>\n");
     }
     free(data);
     return -1;
@@ -47,65 +47,65 @@ int initSoundDevice(snd_pcm_t** handle, const char* deviceName, int channels, un
 
  //Creates a handle and opens a specific audio interface
   if((pcmFd = snd_pcm_open(handle, deviceName, stream,0)) < 0){
-    printf("Error: Couldnt open default PCM device : [%d]", pcmFd);
+    fprintf(stderr,"Error: Couldnt open default PCM device : [%d]", pcmFd);
     return EXIT_FAILURE;
   }
-  printf("PCM device opened\n");
+  fprintf(stdout,"PCM device opened\n");
 
   if (snd_pcm_hw_params_malloc(&params) < 0) {
-    printf("Error: Could not allocate HW parameter for PCM device\n");
+    fprintf(stderr,"Error: Could not allocate HW parameter for PCM device\n");
     return EXIT_FAILURE;
   }
-  printf("Allocated hw params for device\n");
+  fprintf(stdout,"Allocated hw params for device\n");
 
 	//configure std params to the device
   if(snd_pcm_hw_params_any(*handle, params)< 0){
-    printf("Error: Could not configure PCM device\n");
+    fprintf(stderr,"Error: Could not configure PCM device\n");
     return EXIT_FAILURE;
   }
-  printf("Set default params\n");
+  fprintf(stdout,"Set default params\n");
 
 	//set the device in interleaved mode
   if (snd_pcm_hw_params_set_access(*handle, params, mode) < 0) {
-	  printf("Error: Could not set PCM-device mode\n");
+	  fprintf(stderr,"Error: Could not set PCM-device mode\n");
     return EXIT_FAILURE;
   }
-  printf("Set access mode\n");
+  fprintf(stdout,"Set access mode\n");
 
 	//set sample format to the device
 	if (snd_pcm_hw_params_set_format(*handle, params,	format) < 0) {
-	  printf("Error: Could not set sample format\n");
+	  fprintf(stderr,"Error: Could not set sample format\n");
     return EXIT_FAILURE;
   }
-  printf("Sample format set\n");
+  fprintf(stdout,"Sample format set\n");
 	
   //set channcel size to the device
 	if (snd_pcm_hw_params_set_channels(*handle, params, channels) < 0) {
-		printf("Error: Could not set Channels\n");
+		fprintf(stderr,"Error: Could not set Channels\n");
     return EXIT_FAILURE;
   }
-  printf("Channel size set : [%d]\n",channels);
+  fprintf(stdout,"Channel size set : [%d]\n",channels);
 	
   //set sample rate of the device, 44100(CD Quality)
 	if (snd_pcm_hw_params_set_rate_near(*handle, params, sampleRate, 0) < 0) {
-		printf("Error: Could not set sample rate\n");
+		fprintf(stderr,"Error: Could not set sample rate\n");
     return EXIT_FAILURE;
   }
-	printf("Sample Rate set : [%d Hz]\n",*sampleRate);
+	fprintf(stdout,"Sample Rate set : [%d Hz]\n",*sampleRate);
 	
   //Set period size
 	if (snd_pcm_hw_params_set_period_size_near(*handle, params, &frames, 0) < 0) {
-		printf("Error: Could not set period size\n");
+		fprintf(stderr,"Error: Could not set period size\n");
     return EXIT_FAILURE;
   }
-	printf("Period size set : [%d]\n", (int)frames);
+	fprintf(stdout,"Period size set : [%d]\n", (int)frames);
 	
 	//Write hardware-parameter to device
 	if(snd_pcm_hw_params(*handle, params)<0){
-		printf("Error: Could not apply hardware parameters\n");
+		fprintf(stderr,"Error: Could not apply hardware parameters\n");
     return EXIT_FAILURE;
 	}
-  printf("PCM device prepared and configured.");
+  fprintf(stdout,"PCM device prepared and configured.");
   snd_pcm_hw_params_free(params);
     return EXIT_SUCCESS;
   

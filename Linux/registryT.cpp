@@ -1,12 +1,15 @@
 #include "registryT.hpp"
 
 snd_pcm_t *pcmHandle;
-mutex serverCommandMutex;
+mutex closeMutex;
+mutex workerMutex;
+mutex downMutex;
+mutex pipeMutex;
 bool down = false;
+int kill = -2;
 bool writeToPipe = false;
 bool connectionClose = false;
 
-double timerResultEchoHandle;
 double timerTcpThread;
 
 double timerUdpThread;
@@ -38,19 +41,21 @@ int dialog(){
 }
 
 void executeHandleEchoServiceThread(int& socket){
-	timer stopwatch;
 	int rt;
 	fcntl(socket, F_SETFL, O_NONBLOCK);
-	while(!down){
+	while(!down || kill==socket){
+	timer stopwatch;
 		rt = handleEchoService(&socket);
 		if( rt == -1 || rt == EXIT_FAILURE){
 			break;
+		}else if(rt == EXIT_SUCCESS){
+			cout << "Thread with worker : " << socket << " took " << stopwatch.elapsed() << endl;
 		}else{
-			sleep(2);
+			sleep(1);
 		}
+		
 	}
-	cout << "Worker handle Thread exits" << endl;
-    timerResultEchoHandle=stopwatch.elapsed();
+	cout << "Echo client thread exits : " << &socket << endl;
 }
 
 void executeTcpThread(int tcpListener){
@@ -64,22 +69,35 @@ void executeTcpThread(int tcpListener){
 	}
 	while(!down){
 	for (int i = 0; i < MAX_WORKER; i++){
-		if (workers[i] == -1){
-				if(initEchoService(&tcpListener, &workers[i], stdWelcomeMessage) == EXIT_SUCCESS){	
-					threadPool[i] = thread(executeHandleEchoServiceThread, ref(workers[i]));
-					threadPool[i].join();
-				}else{
-					cout << "Con. pending, sleep 5 seconds" << endl;
-					//sleep(5);
-				}
-				if(down)
-					break;
-				if(connectionClose){
-					int fd = getInt("\nFile descriptor Id: ");
-					closeConnection(&fd);
-				}
+			if (workers[i] == -1){
+					unique_lock<mutex> lock(workerMutex);
+					if(initEchoService(&tcpListener, &workers[i], stdWelcomeMessage) == EXIT_SUCCESS){	
+						threadPool[i] = thread(executeHandleEchoServiceThread, ref(workers[i]));
+					}else{
+						sleep(1);
+					}
+					if(down)
+						break;
+					if(connectionClose){
+						for (int i = 0; i < MAX_WORKER; i++){
+							if(workers[i]==kill){
+								unique_lock<mutex> lock(closeMutex);
+								closeConnection(&workers[i]);
+								connectionClose = false;
+								kill=-2;
+								lock.unlock();
+							}
+						}
+					}
+					lock.unlock();
+			}
 		}
 	}
+	
+	for (int i = 0; i < MAX_WORKER; i++){
+		if(workers[i] != -1){
+			threadPool[i].join();
+		}
 	}
 	cout << "Tcp Thread exits" << endl;
     timerTcpThread=stopwatch.elapsed();
@@ -95,19 +113,12 @@ void executeUdpThread(int udpListener){
     timerUdpThread=stopwatch.elapsed();
 }
 
-void executePipeThreadRead(const char* path){
+void executePipeThreadRead(int& pipeListener,const char* path){
 	timer stopwatch;
-	int pipeListener = open(path, O_RDONLY | O_NONBLOCK);
-	if (pipeListener < 0){
-		cout << "pipe could no be opened : [%d]" << pipeListener << endl;
-	}
 	while(!down){
 		if(!writeToPipe){
+			unique_lock<mutex> lock(pipeMutex);
 			handleNamedPipeServiceRead(&pipeListener, path);
-		}else{
-			handleNamedPipeServiceWrite(pipeListener, &pipeListener, path);
-			unique_lock<mutex> lock(serverCommandMutex);
-			writeToPipe = false;
 			lock.unlock();
 		}
 	}
@@ -118,38 +129,47 @@ void executePipeThreadRead(const char* path){
 int startConnectionHandle(int *tcpListener, int *udpListener, const char *path){
 	timer stopwatch;
 	int command;
-
+	int pipeListener = open(path, O_RDONLY | O_NONBLOCK);
+	if (pipeListener < 0){
+		cout << "pipe could no be opened : [%d]" << pipeListener << endl;
+	}
 	fcntl(*tcpListener, F_SETFL, O_NONBLOCK);
 	fcntl(*udpListener, F_SETFL, O_NONBLOCK);
 	thread tcpListenThread(executeTcpThread, *tcpListener);
 	thread udpListenerThread(executeUdpThread, *udpListener);
-	thread pipeThread(executePipeThreadRead, path);
+	thread pipeThread(executePipeThreadRead, ref(pipeListener),path);
 
-	while(1){
+	while(true){
+
 		command = dialog();
-		command = 1;
+		//command = 1;
 		if(command == STOP){
-			unique_lock<mutex> lock(serverCommandMutex);
+			unique_lock<mutex> lock(downMutex);
 			cout << "Triggered server command STOP."<< endl;
 			cout << "Server will now shutdown." << endl;
 			down = true;
 			lock.unlock();
 			break;
 		}else if(command == PIPES){
-			unique_lock<mutex> lock(serverCommandMutex);
+			unique_lock<mutex> lock(pipeMutex);
 			writeToPipe = true;
+			char* message = (char*)calloc(MAX_BUFF_SIZE, sizeof(char));
+			cout <<"\n Write to Pipe ~> "; cin >> message;
+			handleNamedPipeServiceWrite(-1, &pipeListener, path, message, strlen(message));
+			free(message);
 			lock.unlock();
 		}else if(command == CANCEL){
-			
+			unique_lock<mutex> lock(closeMutex);
+			kill = getInt("\nFile descriptor Id: ");
+			connectionClose = true;
+			lock.unlock();
 		}
 	}
 	tcpListenThread.join();
 	udpListenerThread.join();
 	pipeThread.join();
-	cout << "Thread execution time : " << timerResultEchoHandle << endl;
 	cout << "Thread execution time : " << timerTcpThread << endl;
 	cout << "Thread execution time : " << timerUdpThread << endl;
-	cout << "Thread execution time : " << timerPipeThread << endl;
     timerPipeThread=stopwatch.elapsed();
 	cout << "Thread execution time : " << timerAll << endl;
 	cout << "All threads closed. Have a nice day!!!" << endl;

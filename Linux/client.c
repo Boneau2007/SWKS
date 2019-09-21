@@ -95,7 +95,7 @@ void echoServiceHandle(){
         printf("Server response timeout\n");
         break;
       }else{
-        printf("%s", serverMessage);
+        printf("%s\n", serverMessage);
       }
     }
   }else{

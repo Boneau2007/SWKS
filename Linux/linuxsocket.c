@@ -15,13 +15,13 @@ int acceptSocket(int* listener, int* worker) {
 	int workerlength = sizeof(worker);
 	if ((*worker = accept(*listener, (struct sockaddr *)&clientAddress, (socklen_t *)&workerlength)) == -1) {
 		switch (errno){
-		case EWOULDBLOCK: printf("\nOperation desn't block. Try again\n");
+		case EWOULDBLOCK: fprintf(stderr,"\nOperation desn't block. Try again\n");
 						  return EWOULDBLOCK;
-		default: printf("\nError, accept() failed.\n");
+		default: fprintf(stderr,"\nError, accept() failed.\n");
 				 return -1;
 		}
 	}else{
-		printf("\nNew Client connection to socket, fd is [%d], Ip : [%s], port : [%d] \n", *worker, inet_ntoa(clientAddress.sin_addr),htons(clientAddress.sin_port));
+		fprintf(stdout,"\nNew Client connection to socket, fd is [%d], Ip : [%s], port : [%d] \n", *worker, inet_ntoa(clientAddress.sin_addr),htons(clientAddress.sin_port));
 		return EXIT_SUCCESS;
 	}
 }
@@ -41,10 +41,10 @@ int createSocket(int family, int type, int protocol) {
 	int sock;
 	sock = socket(family, type, protocol);
 	if (sock == -1) {
-		printf("Error, couldn't create Socket from type [%d]: [%i]\n", type, sock);
+		fprintf(stderr,"Error, couldn't create Socket from type [%d]: [%i]\n", type, sock);
 		return -1;
 	}
-	printf("Socket successfully created.\n");
+	fprintf(stdout,"Socket successfully created.\n");
 	return sock;
 }
 
@@ -64,10 +64,10 @@ int bindSocket(int* socket, unsigned int address, int port) {
 	serverAddress.sin_addr.s_addr = htonl(address);
 	serverAddress.sin_port = htons(port);
 	if (bind(*socket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) == -1){
-		printf("Error, couldn't bind Socket :\n");
+		fprintf(stderr,"Error, couldn't bind Socket :\n");
 		return EXIT_FAILURE;
 	}else{
-		printf("Socket successfully bound.\n");
+		fprintf(stdout,"Socket successfully bound.\n");
 		return EXIT_SUCCESS;
 	}
 }
@@ -82,10 +82,10 @@ int bindSocket(int* socket, unsigned int address, int port) {
  */
 int listenSocket(int* socket) {
 	if(listen(*socket, 0) == -1) {
-		printf("Error, couldn't set Socket in listen mode :\n");
+		fprintf(stderr,"Error, couldn't set Socket in listen mode :\n");
 		return EXIT_FAILURE;
 	}else{
-		printf("Socket is now in listen mode.\n");
+		fprintf(stdout,"Socket is now in listen mode.\n");
 		return EXIT_SUCCESS;
 	}
 }
@@ -102,10 +102,10 @@ int listenSocket(int* socket) {
  */
 int closeSocket(int* socket) {
 	if(close(*socket) == -1) {
-		printf("Error, couldn't close Socket.\n");
+		fprintf(stderr,"Error, couldn't close Socket.\n");
 		return EXIT_FAILURE;
 	}else{
-		printf("Socket is now closed.\n");
+		fprintf(stdout,"Socket is now closed.\n");
 		return EXIT_SUCCESS;
 	}
 	

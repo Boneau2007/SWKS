@@ -16,10 +16,10 @@ char* stdReturnMessage = "Server answered: ";
 int initEchoService(int* listener, int* worker, const char* message){
 	if(!acceptSocket(listener, worker)){
 		if (write(*worker, message, strlen(message)) == -1){
-			perror("\nError, while try to send.\n");
+			fprintf(stderr,"\nError, while try to send.\n");
 			return EXIT_FAILURE;
 		}else{
-			printf("\nWelcome message has been send.\n");
+			fprintf(stdout,"\nWelcome message has been send.\n");
 			return EXIT_SUCCESS;
 		}
 	}else{
@@ -40,15 +40,15 @@ int handleEchoService(int* socket){
 	int messageLength = 0;
 	if((messageLength = recv(*socket, buff, BUFF_SIZE, 0)) == -1){
 		switch (errno){
-		case EWOULDBLOCK: printf("\nOperation would block. Try again\n");
+		case EWOULDBLOCK: fprintf(stderr,"\nOperation would block. Try again\n");
 						  return EWOULDBLOCK;
-		default: printf("\nError, recv() failed.\n");
+		default: fprintf(stderr,"\nError, recv() failed.\n");
 				 return -1;
 		}
 	}else{
-		printf("Worker[%d] recieved [%d] bytes \n",  *socket, messageLength);
+		fprintf(stdout,"Worker[%d] recieved [%d] bytes \n",  *socket, messageLength);
 		if(strncmp(buff, "CLOSE",5)==0){
-			printf("Worker[%d] recieved a CLOSE call. \n", *socket);
+			fprintf(stdout,"Worker[%d] recieved a CLOSE call. \n", *socket);
 			messageLength = 0;
 		}
 		if (messageLength == 0) {
@@ -57,13 +57,11 @@ int handleEchoService(int* socket){
 			return EXIT_FAILURE;
 		}else {
 			if (messageLength < BUFF_SIZE - 1) {
-				if (buff) {
-					strncpy(message, stdReturnMessage, strlen(stdReturnMessage));
-					strncat(message, buff, strlen(buff));
-					printf("Send Message at worker : [%d] \n", *socket);
-					write(*socket, message, strlen(message));
-					printf("Message has been send\n");
-				}
+				strncpy(message, stdReturnMessage, strlen(stdReturnMessage));
+				strncat(message, buff, strlen(buff));
+				fprintf(stdout,"Send Message at worker : [%d] \n", *socket);
+				write(*socket, message, strlen(message));
+				fprintf(stdout,"Message has been send\n");
 			}else{
 				char* errorMsg = "Message was to large to send";
 				write(*socket, errorMsg, strlen(errorMsg));
@@ -81,5 +79,5 @@ int handleEchoService(int* socket){
 void closeConnection(int* socket){
 	shutdown(*socket,SHUT_RDWR);
 	*socket = -1;
-	printf("\nConnection has been shutdown\n");
+	fprintf(stdout,"\nConnection has been shutdown\n");
 }

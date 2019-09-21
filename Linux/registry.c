@@ -73,6 +73,7 @@ void dialog(){
 	printf("\n%i. Close connection\n",CANCEL);
 	printf("\n==========================\n");
 }
+
 int startConnectionHandle(int* tcpListener, int* udpListener, const char* path) {
 	const char* stdWelcomeMessage = "Welcome to Echo-Server v1.0\n";
 	fd_set fdset;
@@ -102,7 +103,6 @@ int startConnectionHandle(int* tcpListener, int* udpListener, const char* path) 
 		FD_SET(*udpListener, &fdset);
 		FD_SET(pipeListener, &fdset);
 		FD_SET(STDIN_FILENO, &fdset);
-		printf("fd:[%d]", pipeListener);
 		for (int i = 0; i < MAX_WORKER; i++) {
 			if (workers[i] != -1) {
 				FD_SET(workers[i], &fdset);
@@ -139,7 +139,12 @@ int startConnectionHandle(int* tcpListener, int* udpListener, const char* path) 
 			}else if(command == PIPES){
 				for(int i = 0;i < MAX_WORKER;i++){
 					if(workers[i] == -1){
-						handleNamedPipeServiceWrite(workers[i],&pipeListener,path);
+						char* message = (char*)calloc(MAX_BUFF_SIZE, sizeof(char));
+						printf("\n Write to Pipe ~>");
+						fgets(message, MAX_BUFF_SIZE, stdin);
+						fflush(stdin);
+						handleNamedPipeServiceWrite(-1, &pipeListener, path, message, strlen(message));
+						free(message);
 						break;
 					}
 				}
@@ -158,7 +163,6 @@ int startConnectionHandle(int* tcpListener, int* udpListener, const char* path) 
 			dialog();
 
 		}else if(FD_ISSET(*udpListener, &fdset)){
-				printf("\nHandle udp-listener : [%d]\n", *udpListener);
 				handleSoundService(*udpListener, pcmHandle);
 		}else if(FD_ISSET(pipeListener, &fdset)){
 				handleNamedPipeServiceRead(&pipeListener, path);
@@ -177,9 +181,13 @@ int startConnectionHandle(int* tcpListener, int* udpListener, const char* path) 
 		else {
 			for (int i = 0; i < MAX_WORKER; i++) {
 				if (FD_ISSET(workers[i], &fdset)) {
+					clock_t time = clock();
 					if(handleEchoService(&workers[i]) == EXIT_FAILURE){
 						closeConnection(&workers[i]);
 					}
+					time = clock() - time;double 
+					time_taken = ((double)time)/CLOCKS_PER_SEC; // in seconds 
+					fprintf(stdout,"Connection took : [%f]\n", time_taken);
 				}
 			}
 		}

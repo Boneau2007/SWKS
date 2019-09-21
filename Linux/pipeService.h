@@ -13,6 +13,6 @@
 
 extern int initNamedPipe(const char* path, mode_t mode);
 extern void handleNamedPipeServiceRead(int* reader, const char* path);
-extern void handleNamedPipeServiceWrite(int worker,int* reader, const char* path);
+extern void handleNamedPipeServiceWrite(int worker,int* reader, const char* path, const char* message, int length);
 
 #endif //PIPESERVICE_H

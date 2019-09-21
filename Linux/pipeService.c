@@ -46,21 +46,19 @@ int initNamedPipe(const char* path, mode_t mode){
  * @param		listener	Pointer-Id of the file-descriptor
  * @param		path		Path of the Named-Pipe
  */
-void handleNamedPipeServiceWrite(int worker,int *reader, const char* path) {
-	char buffer[MAX_BUFF_SIZE];		
-	char message[MAX_BUFF_SIZE];	
+void handleNamedPipeServiceWrite(int worker,int *reader, const char* path, const char* message, int length) {
+	char * buffer = calloc(MAX_BUFF_SIZE ,sizeof(char));
 	char pidBuff[16];
+	sprintf(pidBuff,"Server with Pid [%d]: ",getpid());
+	strncpy(buffer, pidBuff, strlen(pidBuff));
+	strncat(buffer, message, length);
 	close(*reader);
 	worker = open(path, O_WRONLY);
-	printf("\n Write to Pipe ~>");
-	fgets((char*)&buffer, MAX_BUFF_SIZE, stdin);
-	fflush(stdin);
-	sprintf(pidBuff,"Server with Pid [%d]: ",getpid());
-	strncpy(message, pidBuff, strlen(pidBuff));
-	strncat(message, buffer, strlen(buffer));
-	write(worker, message, strlen(message));
+	write(worker, buffer, strlen(buffer));
+	fflush(stdout);
 	close(worker);
 	*reader = open(path, O_RDONLY | O_NONBLOCK);
+	free(buffer);
 }
 
 /*

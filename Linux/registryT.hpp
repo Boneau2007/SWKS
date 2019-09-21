@@ -18,6 +18,9 @@
 #include <future>         // std::future
 #include <queue>         // std::queue
 #include <mutex>         // std::mutex
+#include <atomic>
+#include <chrono>
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,6 +47,7 @@ struct connection{
 };
 
 using namespace std;
+using namespace std::chrono;
 
 extern int startConnectionHandle(int* tcpListener, int* udpListener, const char* path);
 extern int initTcpSocket(int port);

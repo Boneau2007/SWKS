@@ -5,6 +5,26 @@ mutex serverCommandMutex;
 bool down = false;
 bool writeToPipe = false;
 bool connectionClose = false;
+
+double timerResultEchoHandle;
+double timerTcpThread;
+
+double timerUdpThread;
+double timerPipeThread;
+double timerAll;
+
+class timer {
+public:
+    time_point<high_resolution_clock> lastTime;
+    timer() : lastTime(high_resolution_clock::now()) {}
+    inline double elapsed() {
+        time_point<high_resolution_clock> thisTime=high_resolution_clock::now();
+        double deltaTime = duration<double>(thisTime-lastTime).count();
+        lastTime = thisTime;
+        return deltaTime;
+    }
+};
+
 int dialog(){
 	int command;
 	printf("\n==========================");
@@ -18,6 +38,7 @@ int dialog(){
 }
 
 void executeHandleEchoServiceThread(int& socket){
+	timer stopwatch;
 	int rt;
 	fcntl(socket, F_SETFL, O_NONBLOCK);
 	while(!down){
@@ -29,9 +50,11 @@ void executeHandleEchoServiceThread(int& socket){
 		}
 	}
 	cout << "Worker handle Thread exits" << endl;
+    timerResultEchoHandle=stopwatch.elapsed();
 }
 
 void executeTcpThread(int tcpListener){
+	timer stopwatch;
 	const char *stdWelcomeMessage = "Welcome to Echo-Server v1.0\n";
 	int workers[MAX_WORKER];
 	thread threadPool[MAX_WORKER];
@@ -42,12 +65,12 @@ void executeTcpThread(int tcpListener){
 	while(!down){
 	for (int i = 0; i < MAX_WORKER; i++){
 		if (workers[i] == -1){
-				if(!initEchoService(&tcpListener, &workers[i], stdWelcomeMessage)){
+				if(initEchoService(&tcpListener, &workers[i], stdWelcomeMessage) == EXIT_SUCCESS){	
 					threadPool[i] = thread(executeHandleEchoServiceThread, ref(workers[i]));
 					threadPool[i].join();
 				}else{
-					cout << "No pending connection, sleep for one second" << endl;
-					sleep(5);
+					cout << "Con. pending, sleep 5 seconds" << endl;
+					//sleep(5);
 				}
 				if(down)
 					break;
@@ -59,17 +82,21 @@ void executeTcpThread(int tcpListener){
 	}
 	}
 	cout << "Tcp Thread exits" << endl;
+    timerTcpThread=stopwatch.elapsed();
 }
 
 void executeUdpThread(int udpListener){
+	timer stopwatch;
 	while(!down){
 		handleSoundService(udpListener, pcmHandle);
 	}
 	closeSoundService(pcmHandle);
 	cout << "Udp Thread exits" << endl;
+    timerUdpThread=stopwatch.elapsed();
 }
 
 void executePipeThreadRead(const char* path){
+	timer stopwatch;
 	int pipeListener = open(path, O_RDONLY | O_NONBLOCK);
 	if (pipeListener < 0){
 		cout << "pipe could no be opened : [%d]" << pipeListener << endl;
@@ -85,9 +112,11 @@ void executePipeThreadRead(const char* path){
 		}
 	}
 	cout << "Pipe Thread exits" << endl;
+    timerPipeThread=stopwatch.elapsed();
 }
 
 int startConnectionHandle(int *tcpListener, int *udpListener, const char *path){
+	timer stopwatch;
 	int command;
 
 	fcntl(*tcpListener, F_SETFL, O_NONBLOCK);
@@ -98,6 +127,7 @@ int startConnectionHandle(int *tcpListener, int *udpListener, const char *path){
 
 	while(1){
 		command = dialog();
+		command = 1;
 		if(command == STOP){
 			unique_lock<mutex> lock(serverCommandMutex);
 			cout << "Triggered server command STOP."<< endl;
@@ -113,10 +143,15 @@ int startConnectionHandle(int *tcpListener, int *udpListener, const char *path){
 			
 		}
 	}
-
 	tcpListenThread.join();
 	udpListenerThread.join();
 	pipeThread.join();
+	cout << "Thread execution time : " << timerResultEchoHandle << endl;
+	cout << "Thread execution time : " << timerTcpThread << endl;
+	cout << "Thread execution time : " << timerUdpThread << endl;
+	cout << "Thread execution time : " << timerPipeThread << endl;
+    timerPipeThread=stopwatch.elapsed();
+	cout << "Thread execution time : " << timerAll << endl;
 	cout << "All threads closed. Have a nice day!!!" << endl;
 	return EXIT_SUCCESS;
 }

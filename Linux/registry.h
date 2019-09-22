@@ -43,7 +43,6 @@ extern void executeHandleEchoServiceThread(int& socket);
 extern void executeTcpThread(int tcpListener);
 extern void executeUdpThread(int udpListener);
 extern void executePipeThreadRead(int& pipeListener,const char * path);
-extern void echoService(int* tcpListener);
 extern int getInt(const char* message);
 #endif 
 #endif //REGISTRY_HPP

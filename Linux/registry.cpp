@@ -1,4 +1,4 @@
-#include "registryT.hpp"
+#include "registry.h"
 
 snd_pcm_t *pcmHandle;
 mutex closeMutex;

@@ -1,6 +1,5 @@
 #ifndef PIPESERVICE_H
 #define PIPESERVICE_H
-#define MAX_BUFF_SIZE 256
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,6 +9,8 @@
 #include <unistd.h> 
 #include <string.h>
 #include <errno.h>
+
+#define MAX_BUFF_SIZE 256
 
 extern int initNamedPipe(const char* path, mode_t mode);
 extern void handleNamedPipeServiceRead(int* reader, const char* path);

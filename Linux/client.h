@@ -25,4 +25,5 @@ extern int getInt(const char* message);
 extern void echoServiceHandle();
 extern void soundServiceHandle();
 extern void setServerAddress(struct sockaddr_in* server);
+
 #endif //CLIENT_H

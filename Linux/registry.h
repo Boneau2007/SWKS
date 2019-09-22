@@ -25,7 +25,6 @@ using namespace std;
 using namespace std::chrono;
 #endif 
 
-
 #define MAX_WORKER 20
 #define BUFF_SIZE 256
 #define MAX_COMMAND_SIZE 64
@@ -46,6 +45,5 @@ extern void executeUdpThread(int udpListener);
 extern void executePipeThreadRead(int& pipeListener,const char * path);
 extern void echoService(int* tcpListener);
 extern int getInt(const char* message);
-extern void closeConnection(int* socket);
 #endif 
 #endif //REGISTRY_HPP

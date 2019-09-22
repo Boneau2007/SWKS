@@ -68,7 +68,7 @@ void executeTcpThread(int tcpListener){
 		workers[i] = -1;
 	}
 	while(!down){
-	for (int i = 0; i < MAX_WORKER; i++){
+		for (int i = 0; i < MAX_WORKER; i++){
 			if (workers[i] == -1){
 					unique_lock<mutex> lock(workerMutex);
 					if(initEchoService(&tcpListener, &workers[i], stdWelcomeMessage) == EXIT_SUCCESS){	
@@ -89,7 +89,7 @@ void executeTcpThread(int tcpListener){
 							}
 						}
 					}
-					lock.unlock();
+				lock.unlock();
 			}
 		}
 	}
@@ -156,6 +156,7 @@ int startConnectionHandle(int *tcpListener, int *udpListener, const char *path){
 			char* message = (char*)calloc(MAX_BUFF_SIZE, sizeof(char));
 			cout <<"\n Write to Pipe ~> "; cin >> message;
 			handleNamedPipeServiceWrite(-1, &pipeListener, path, message, strlen(message));
+			writeToPipe = false;
 			free(message);
 			lock.unlock();
 		}else if(command == CANCEL){

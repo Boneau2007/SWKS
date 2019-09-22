@@ -108,5 +108,4 @@ int closeSocket(int* socket) {
 		fprintf(stdout,"Socket is now closed.\n");
 		return EXIT_SUCCESS;
 	}
-	
 }

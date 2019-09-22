@@ -169,9 +169,7 @@ int startConnectionHandle(int* tcpListener, int* udpListener, const char* path) 
 		}else if (FD_ISSET(*tcpListener, &fdset)) {
 			for (int i = 0; i < MAX_WORKER; i++) {
 				if (workers[i] == -1) {
-					if((FD_ISSET(*tcpListener, &fdset))){
-						initEchoService(tcpListener, &workers[i], stdWelcomeMessage);
-					}
+					initEchoService(tcpListener, &workers[i], stdWelcomeMessage);
 					printf("Worker[%d] is now set \n", workers[i]);
 					break;
 				}

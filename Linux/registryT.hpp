@@ -55,6 +55,7 @@ extern int initUdpSocket(int port);
 extern int initPipe(const char*, int);
 extern int initSound();
 
+extern void executeHandleEchoServiceThread(int& socket);
 extern void executeTcpThread(int tcpListener);
 extern void executeUdpThread(int udpListener);
 extern void executePipeThreadRead(int& pipeListener,const char * path);

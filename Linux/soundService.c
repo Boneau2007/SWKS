@@ -2,8 +2,8 @@
 
 /*
  * @function	handleSoundService
- * @abstract	Handles communication
- * @discuss 	This function handles the sound communication
+ * @abstract	Handles incomming communication
+ * @discuss 	This function handles the incomming sound communication
  * @param		  int         socket-Id   
  * @param		  snd_pcm_t		pmHandle
  */

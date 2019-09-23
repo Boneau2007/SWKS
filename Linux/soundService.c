@@ -111,6 +111,13 @@ int initSoundDevice(snd_pcm_t** handle, const char* deviceName, int channels, un
   
 }
 
+
+/*
+ * @function	closeSoundService
+ * @abstract	Closes the device
+ * @discuss 	This function is responsible for closeing the device properly
+ * @param		  pcmHandle		      Handle of the specific device to close
+ */
 void closeSoundService(snd_pcm_t* pcmHandle) {
 
   // Drop pending frames
@@ -121,6 +128,4 @@ void closeSoundService(snd_pcm_t* pcmHandle) {
 
   // Close PCM device after drained 
   snd_pcm_close(pcmHandle);
-
-  //free data buffer
 }

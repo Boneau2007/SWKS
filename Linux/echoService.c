@@ -76,8 +76,21 @@ int handleEchoService(int* socket){
 	return EXIT_SUCCESS;
 }
 
-void closeConnection(int* socket){
-	shutdown(*socket,SHUT_RDWR);
+
+/*
+ * @function	closeConnection
+ * @abstract	Closes communication to client
+ * @discuss 	This function handles the tcp close call, to shutdown a
+ * 				communication with a client and frees the Socket.
+ * @param		socket		Pointer-Id of the socket
+ * @result		Results an EXIT_FAILURE or EXIT_SUCCESS
+ */
+int closeConnection(int* socket){
+	if(shutdown(*socket,SHUT_RDWR) < 0){
+		fprintf(stderr,"\nError on shutdown connection\n");
+		return EXIT_FAILURE;
+	}
 	*socket = -1;
 	fprintf(stdout,"\nConnection has been shutdown\n");
+	return EXIT_SUCCESS;
 }

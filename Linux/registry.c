@@ -1,6 +1,15 @@
 #include "registry.h"
 
 snd_pcm_t* pcmHandle;
+
+
+/*
+ * @function	initTcpSocket
+ * @abstract	Initialize Tcp-Socket
+ * @discuss 	This function initializes the Socket for the Tcp communication
+ * @param		port		Portnumber
+ * @result		Results an EXIT_FAILURE or EXIT_SUCCESS
+ */
 int initTcpSocket(int port){
 	int tcpSocket;
 	if((tcpSocket = createSocket(AF_INET, SOCK_STREAM, 0)) < 0){
@@ -23,7 +32,13 @@ int initTcpSocket(int port){
 	return tcpSocket;
 }
 
-//initialzie the upd-Socket for audio streaming
+/*
+ * @function	initUdpSocket
+ * @abstract	Initialize Udp-Socket for Audio-Streaming
+ * @discuss 	This function initializes the Socket for the Udp communication
+ * @param		port		Portnumber
+ * @result		Results an EXIT_FAILURE or EXIT_SUCCESS
+ */
 int initUdpSocket(int port){
 	int udpSocket;
 	if((udpSocket = createSocket(AF_INET, SOCK_DGRAM, 0)) < 0){
@@ -40,6 +55,15 @@ int initUdpSocket(int port){
 	return udpSocket;
 }
 
+
+/*
+ * @function	initPipe
+ * @abstract	Initializes the Pipe handle
+ * @discuss 	This function configures the server for the communikation with the Pipe
+ * @param		path			Path of the Named Pipe
+ * @param		permission		Rights of the Pipe
+ * @result		Results an EXIT_FAILURE or EXIT_SUCCESS
+ */
 int initPipe(const char* path, int permission){
 	if((initNamedPipe(path, permission))==EEXIST){
 		printf("Pipe already exists\n");
@@ -50,6 +74,13 @@ int initPipe(const char* path, int permission){
 	return EXIT_SUCCESS;
 }
 
+
+/*
+ * @function	initSound
+ * @abstract	Initializes the Sound handle
+ * @discuss 	This function configures the soundcard for use
+ * @result		Results an EXIT_FAILURE or EXIT_SUCCESS
+ */
 int initSound(){
 	unsigned int samples = 44100;
 	char* deviceName = "default";
@@ -65,6 +96,12 @@ int initSound(){
 	return EXIT_SUCCESS;
 }
 
+
+/*
+ * @function	dialog
+ * @abstract	A dialog
+ * @discuss 	This function prints the posibilities of the Serverinteraction
+ */
 void dialog(){
 	printf("\n==========================");
 	printf("\nServer Commands: \n");
@@ -74,6 +111,15 @@ void dialog(){
 	printf("\n==========================\n");
 }
 
+/*
+ * @function	startConnectionHandle
+ * @abstract	Startes the Server
+ * @discuss 	This function handles all in and output of the Server
+ * @param		tcpListener		Pointer-Id of the Tcp-Listener-socket
+ * @param		udpListener		Pointer-Id of the Udp-Listener-socket
+ * @param		path			Path of the Named Pipe
+ * @result		Results an EXIT_FAILURE or EXIT_SUCCESS
+ */
 int startConnectionHandle(int* tcpListener, int* udpListener, const char* path) {
 	const char* stdWelcomeMessage = "Welcome to Echo-Server v1.0\n";
 	fd_set fdset;
@@ -193,5 +239,5 @@ int startConnectionHandle(int* tcpListener, int* udpListener, const char* path) 
 	closeSocket(tcpListener);
 	closeSocket(udpListener);
 	closeSoundService(pcmHandle);
-	exit(EXIT_SUCCESS);
+	return EXIT_SUCCESS;
 }

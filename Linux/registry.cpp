@@ -28,6 +28,12 @@ public:
     }
 };
 
+/*
+ * @function	dialog
+ * @abstract	A dialog
+ * @discuss 	This function prints the posibilities of the Serverinteraction
+ * @result		Results an Integer
+ */
 int dialog(){
 	int command;
 	printf("\n==========================");
@@ -40,6 +46,13 @@ int dialog(){
 	return command;
 }
 
+
+/*
+ * @function	executeHandleEchoServiceThread
+ * @abstract	Handles the Echo Thread client communication
+ * @discuss 	This function is responsible for the execution of the Echo Service handle
+ * @param		socket	Pointer-Id of the Worker-socket
+ */
 void executeHandleEchoServiceThread(int& socket){
 	int rt;
 	fcntl(socket, F_SETFL, O_NONBLOCK);
@@ -58,6 +71,13 @@ void executeHandleEchoServiceThread(int& socket){
 	cout << "Echo client thread exits : " << &socket << endl;
 }
 
+
+/*
+ * @function	executeTcpThread
+ * @abstract	Handles the Echo Thread
+ * @discuss 	This function is responsible for the execution of the Echo Service
+ * @param		tcpListener	Pointer-Id of the Tcp-Listener-socket
+ */
 void executeTcpThread(int tcpListener){
 	timer stopwatch;
 	const char *stdWelcomeMessage = "Welcome to Echo-Server v1.0\n";
@@ -103,6 +123,13 @@ void executeTcpThread(int tcpListener){
     timerTcpThread=stopwatch.elapsed();
 }
 
+
+/*
+ * @function	executeUdpThread
+ * @abstract	Handles the Sound Thread
+ * @discuss 	This function is responsible for the execution of the Sound Service
+ * @param		udpListener	Pointer-Id of the Udp-Listener-socket
+ */
 void executeUdpThread(int udpListener){
 	timer stopwatch;
 	while(!down){
@@ -113,6 +140,13 @@ void executeUdpThread(int udpListener){
     timerUdpThread=stopwatch.elapsed();
 }
 
+/*
+ * @function	executePipeThreadRead
+ * @abstract	Handles the Pipe Thread
+ * @discuss 	This function is responsible for the execution of the Pipe Service
+ * @param		pipeListener	Pointer-Id of the pipeListener-socket
+ * @param		path			Path of the Named Pipe
+ */
 void executePipeThreadRead(int& pipeListener,const char* path){
 	timer stopwatch;
 	while(!down){
@@ -126,6 +160,15 @@ void executePipeThreadRead(int& pipeListener,const char* path){
     timerPipeThread=stopwatch.elapsed();
 }
 
+/*
+ * @function	startConnectionHandle
+ * @abstract	Startes the Server
+ * @discuss 	This function handles all in and output of the Server
+ * @param		tcpListener		Pointer-Id of the Tcp-Listener-socket
+ * @param		udpListener		Pointer-Id of the Udp-Listener-socket
+ * @param		path			Path of the Named Pipe
+ * @result		Results an EXIT_FAILURE or EXIT_SUCCESS
+ */
 int startConnectionHandle(int *tcpListener, int *udpListener, const char *path){
 	timer stopwatch;
 	int command;
@@ -177,6 +220,13 @@ int startConnectionHandle(int *tcpListener, int *udpListener, const char *path){
 	return EXIT_SUCCESS;
 }
 
+
+/*
+ * @function	initSound
+ * @abstract	Initializes the Sound handle
+ * @discuss 	This function configures the soundcard for use
+ * @result		Results an EXIT_FAILURE or EXIT_SUCCESS
+ */
 int initSound(){
 	unsigned int samples = 44100;
 	const char *deviceName = "default";
@@ -193,6 +243,13 @@ int initSound(){
 	return EXIT_SUCCESS;
 }
 
+/*
+ * @function	initTcpSocket
+ * @abstract	Initialize Tcp-Socket
+ * @discuss 	This function initializes the Socket for the Tcp communication
+ * @param		port		Portnumber
+ * @result		Results an EXIT_FAILURE or EXIT_SUCCESS
+ */
 int initTcpSocket(int port){
 	int tcpSocket;
 	if ((tcpSocket = createSocket(AF_INET, SOCK_STREAM, 0)) < 0){
@@ -216,7 +273,13 @@ int initTcpSocket(int port){
 	return tcpSocket;
 }
 
-//initialzie the upd-Socket for audio streaming
+/*
+ * @function	initUdpSocket
+ * @abstract	Initialize Udp-Socket for Audio-Streaming
+ * @discuss 	This function initializes the Socket for the Udp communication
+ * @param		port		Portnumber
+ * @result		Results an EXIT_FAILURE or EXIT_SUCCESS
+ */
 int initUdpSocket(int port){
 	int udpSocket;
 	if ((udpSocket = createSocket(AF_INET, SOCK_DGRAM, 0)) < 0)
@@ -239,6 +302,14 @@ int initUdpSocket(int port){
 	return udpSocket;
 }
 
+/*
+ * @function	initPipe
+ * @abstract	Initializes the Pipe handle
+ * @discuss 	This function configures the server for the communikation with the Pipe
+ * @param		path			Path of the Named Pipe
+ * @param		permission		Rights of the Pipe
+ * @result		Results an EXIT_FAILURE or EXIT_SUCCESS
+ */
 int initPipe(const char *path, int permission){
 	if ((initNamedPipe(path, permission)) == EEXIST)
 	{
@@ -253,6 +324,13 @@ int initPipe(const char *path, int permission){
 }
 
 
+/*
+ * @function	getInt
+ * @abstract	String to Int
+ * @discuss 	This function converts an Integer as String into an real Integer
+ * @param		message			Integer as String
+ * @result		Results the converted Number
+ */
 int getInt(const char* message){
   printf("%s",message);
   long value;

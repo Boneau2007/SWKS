@@ -4,8 +4,8 @@
  * @function	handleSoundService
  * @abstract	Handles incomming communication
  * @discuss 	This function handles the incomming sound communication
- * @param		  int         socket-Id   
- * @param		  snd_pcm_t		pmHandle
+ * @param       int         socket-Id   
+ * @param       snd_pcm_t   pmHandle
  */
 int handleSoundService(int socket, snd_pcm_t* pcmHandle) {
   int length = 16;
@@ -27,25 +27,24 @@ int handleSoundService(int socket, snd_pcm_t* pcmHandle) {
  * @function	initSoundDevice
  * @abstract	Initializes the device
  * @discuss 	This function is responsible for the device initialization
- * @param		  deviceName		      Name of the PCM-device
- * @param		  channels		        Channel count
- * @param		  sampleRate		      SampleRate of the device
- * @param		  snd_pcm_format_t		see alsa/asounldlib.h
- * @param		  snd_pcm_stream_t		see alsa/asounldlib.h
- * @param		  snd_pcm_access_t		see alsa/asounldlib.h
- * @result		Results an pointer of pcmHandle or NULL
+ * @param	deviceName		      Name of the PCM-device
+ * @param	channels		        Channel count
+ * @param	sampleRate		      SampleRate of the device
+ * @param	snd_pcm_format_t		see alsa/asounldlib.h
+ * @param	snd_pcm_stream_t		see alsa/asounldlib.h
+ * @param	snd_pcm_access_t		see alsa/asounldlib.h
+ * @result	Results an pointer of pcmHandle or NULL
  */
-int initSoundDevice(snd_pcm_t** handle, const char* deviceName, int channels, unsigned int * sampleRate,
-                           snd_pcm_stream_t stream,
-                           snd_pcm_format_t format, snd_pcm_access_t mode,
-                           snd_pcm_uframes_t frames){
-  
+int initSoundDevice(snd_pcm_t** handle, const char* deviceName, 
+		    const int channels, const unsigned int* sampleRate,
+                    const snd_pcm_stream_t stream, const snd_pcm_format_t format,
+		    const snd_pcm_access_t mode, const snd_pcm_uframes_t frames){
   snd_pcm_hw_params_t* params;
   unsigned int pcmFd; 
 
   snd_pcm_hw_params_alloca(&params);
 
- //Creates a handle and opens a specific audio interface
+ // Creates a handle and opens a specific audio interface
   if((pcmFd = snd_pcm_open(handle, deviceName, stream,0)) < 0){
     fprintf(stderr,"Error: Couldnt open default PCM device : [%d]", pcmFd);
     return EXIT_FAILURE;
@@ -58,68 +57,66 @@ int initSoundDevice(snd_pcm_t** handle, const char* deviceName, int channels, un
   }
   fprintf(stdout,"Allocated hw params for device\n");
 
-	//configure std params to the device
-  if(snd_pcm_hw_params_any(*handle, params)< 0){
+  // Configure std params to the device
+  if(snd_pcm_hw_params_any(*handle, params) < 0){
     fprintf(stderr,"Error: Could not configure PCM device\n");
     return EXIT_FAILURE;
   }
   fprintf(stdout,"Set default params\n");
 
-	//set the device in interleaved mode
+  // Set device to interleaved mode
   if (snd_pcm_hw_params_set_access(*handle, params, mode) < 0) {
-	  fprintf(stderr,"Error: Could not set PCM-device mode\n");
+    fprintf(stderr,"Error: Could not set PCM-device mode\n");
     return EXIT_FAILURE;
   }
   fprintf(stdout,"Set access mode\n");
 
-	//set sample format to the device
-	if (snd_pcm_hw_params_set_format(*handle, params,	format) < 0) {
-	  fprintf(stderr,"Error: Could not set sample format\n");
+  // Set device sample format
+  if (snd_pcm_hw_params_set_format(*handle, params, format) < 0) {
+    fprintf(stderr,"Error: Could not set sample format\n");
     return EXIT_FAILURE;
   }
   fprintf(stdout,"Sample format set\n");
 	
-  //set channcel size to the device
-	if (snd_pcm_hw_params_set_channels(*handle, params, channels) < 0) {
-		fprintf(stderr,"Error: Could not set Channels\n");
+  // Set device channcel size
+  if (snd_pcm_hw_params_set_channels(*handle, params, channels) < 0) {
+    fprintf(stderr,"Error: Could not set Channels\n");
     return EXIT_FAILURE;
   }
-  fprintf(stdout,"Channel size set : [%d]\n",channels);
+  fprintf(stdout,"Channel size set : [%d]\n", channels);
 	
-  //set sample rate of the device, 44100(CD Quality)
-	if (snd_pcm_hw_params_set_rate_near(*handle, params, sampleRate, 0) < 0) {
-		fprintf(stderr,"Error: Could not set sample rate\n");
+  // Set sample rate of the device, 44100(CD Quality)
+  if (snd_pcm_hw_params_set_rate_near(*handle, params, sampleRate, 0) < 0) {
+    fprintf(stderr,"Error: Could not set sample rate\n");
     return EXIT_FAILURE;
   }
-	fprintf(stdout,"Sample Rate set : [%d Hz]\n",*sampleRate);
+  fprintf(stdout,"Sample Rate set : [%d Hz]\n",*sampleRate);
 	
-  //Set period size
-	if (snd_pcm_hw_params_set_period_size_near(*handle, params, &frames, 0) < 0) {
-		fprintf(stderr,"Error: Could not set period size\n");
+  // Set period size
+  if (snd_pcm_hw_params_set_period_size_near(*handle, params, &frames, 0) < 0) {
+    fprintf(stderr,"Error: Could not set period size\n");
     return EXIT_FAILURE;
   }
-	fprintf(stdout,"Period size set : [%d]\n", (int)frames);
+  fprintf(stdout,"Period size set : [%d]\n", (int)frames);
 	
-	//Write hardware-parameter to device
-	if(snd_pcm_hw_params(*handle, params)<0){
-		fprintf(stderr,"Error: Could not apply hardware parameters\n");
+  // Write hardware-parameter to device
+  if(snd_pcm_hw_params(*handle, params)<0){
+    fprintf(stderr,"Error: Could not apply hardware parameters\n");
     return EXIT_FAILURE;
-	}
+  }
   fprintf(stdout,"PCM device prepared and configured.");
   snd_pcm_hw_params_free(params);
-    return EXIT_SUCCESS;
+  return EXIT_SUCCESS;
   
 }
-
 
 /*
  * @function	closeSoundService
  * @abstract	Closes the device
  * @discuss 	This function is responsible for closeing the device properly
- * @param		  pcmHandle		      Handle of the specific device to close
+ * @param	pcmHandle	Handle of the specific device to close
  */
-void closeSoundService(snd_pcm_t* pcmHandle) {
-
+void closeSoundService(snd_pcm_t* pcmHandle){
   // Drop pending frames
   snd_pcm_drop(pcmHandle);
 

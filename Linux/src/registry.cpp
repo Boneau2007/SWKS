@@ -1,6 +1,6 @@
 #include "registry.h"
 
-snd_pcm_t *pcmHandle;
+snd_pcm_t* pcmHandle;
 mutex closeMutex;
 mutex workerMutex;
 mutex downMutex;
@@ -229,7 +229,7 @@ int startConnectionHandle(int *tcpListener, int *udpListener, const char *path){
  */
 int initSound(){
 	unsigned int samples = 44100;
-	const char *deviceName = "default";
+	const char* deviceName = "default";
 	int channels = 1;
 	snd_pcm_stream_t stream = SND_PCM_STREAM_PLAYBACK;
 	snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
@@ -252,24 +252,22 @@ int initSound(){
  */
 int initTcpSocket(int port){
 	int tcpSocket;
-	if ((tcpSocket = createSocket(AF_INET, SOCK_STREAM, 0)) < 0){
-		return -1;
-	}else{
-		printf("Tcp-listener is now at fd : [%d]\n", tcpSocket);
-	}if (bindSocket(&tcpSocket, INADDR_ANY, port) < 0){
-		return -2;
-	}else{
-		printf("Tcp-listener is now bound\n");
-	}
 
-	if (listenSocket(&tcpSocket) < 0)
-	{
+	if((tcpSocket = createSocket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        return -1;
+    }
+	printf("Tcp-listener is now at fd : [%d]\n", tcpSocket);
+
+	if (bindSocket(&tcpSocket, INADDR_ANY, port) < 0){
+		return -2;
+	}
+	printf("Tcp-listener is now bound\n");
+
+	if (listenSocket(&tcpSocket) < 0){
 		return -3;
 	}
-	else
-	{
-		printf("Tcp-listener is now in listen mode\n");
-	}
+	printf("Tcp-listener is now in listen mode\n");
+
 	return tcpSocket;
 }
 
@@ -281,24 +279,18 @@ int initTcpSocket(int port){
  * @result		Results an EXIT_FAILURE or EXIT_SUCCESS
  */
 int initUdpSocket(int port){
-	int udpSocket;
-	if ((udpSocket = createSocket(AF_INET, SOCK_DGRAM, 0)) < 0)
-	{
+    int udpSocket;
+
+	if ((udpSocket = createSocket(AF_INET, SOCK_DGRAM, 0)) < 0){
 		return -1;
 	}
-	else
-	{
-		printf("Udp-listener is now at fd : [%d]\n", udpSocket);
-	}
+	printf("Udp-listener is now at fd : [%d]\n", udpSocket);
 
-	if (bindSocket(&udpSocket, INADDR_ANY, port))
-	{
+	if (bindSocket(&udpSocket, INADDR_ANY, port)){
 		return -2;
 	}
-	else
-	{
-		printf("Udp-listener is now bound\n");
-	}
+	printf("Udp-listener is now bound\n");
+
 	return udpSocket;
 }
 
@@ -311,13 +303,11 @@ int initUdpSocket(int port){
  * @result		Results an EXIT_FAILURE or EXIT_SUCCESS
  */
 int initPipe(const char *path, int permission){
-	if ((initNamedPipe(path, permission)) == EEXIST)
-	{
+	if ((initNamedPipe(path, permission)) == EEXIST){
 		printf("Pipe already exists\n");
 		return EEXIST;
 	}
-	else
-	{
+	else{
 		printf("Pipe created\n");
 	}
 	return EXIT_SUCCESS;

@@ -12,8 +12,8 @@
 
 #define MAX_BUFF_SIZE 256
 
-extern int initNamedPipe(const char* path, mode_t mode);
-extern void handleNamedPipeServiceRead(int* reader, const char* path);
-extern void handleNamedPipeServiceWrite(int worker,int* reader, const char* path, const char* message, int length);
+extern int init(const char* path, mode_t mode);
+extern void readHandle(int* reader, const char* path);
+extern void writeHandle(int worker, int* reader, const char* path, const char* message, int length);
 
 #endif //PIPESERVICE_H

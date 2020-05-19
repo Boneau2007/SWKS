@@ -1,13 +1,13 @@
 #include "soundService.h"
 
 /*
- * @function	handleSoundService
+ * @function	handle
  * @abstract	Handles incomming communication
  * @discuss 	This function handles the incomming sound communication
  * @param       int         socket-Id   
  * @param       snd_pcm_t   pmHandle
  */
-int handleSoundService(int socket, snd_pcm_t* pcmHandle) {
+int handle(int socket, snd_pcm_t* pcmHandle) {
   int length = 16;
   char * data = calloc(length ,sizeof(char));
   if((length = read(socket, data, length)) >= 0){ 
@@ -24,7 +24,7 @@ int handleSoundService(int socket, snd_pcm_t* pcmHandle) {
 }
 
 /*
- * @function	initSoundDevice
+ * @function	init
  * @abstract	Initializes the device
  * @discuss 	This function is responsible for the device initialization
  * @param	deviceName		      Name of the PCM-device
@@ -35,7 +35,7 @@ int handleSoundService(int socket, snd_pcm_t* pcmHandle) {
  * @param	snd_pcm_access_t		see alsa/asounldlib.h
  * @result	Results an pointer of pcmHandle or NULL
  */
-int initSoundDevice(snd_pcm_t** handle, const char* deviceName, 
+int init(snd_pcm_t** handle, const char* deviceName,
 		    const int channels, const unsigned int* sampleRate,
                     const snd_pcm_stream_t stream, const snd_pcm_format_t format,
 		    const snd_pcm_access_t mode, const snd_pcm_uframes_t frames){
@@ -111,12 +111,12 @@ int initSoundDevice(snd_pcm_t** handle, const char* deviceName,
 }
 
 /*
- * @function	closeSoundService
+ * @function	close
  * @abstract	Closes the device
  * @discuss 	This function is responsible for closeing the device properly
  * @param	pcmHandle	Handle of the specific device to close
  */
-void closeSoundService(snd_pcm_t* pcmHandle){
+void close(snd_pcm_t* pcmHandle){
   // Drop pending frames
   snd_pcm_drop(pcmHandle);
 

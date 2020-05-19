@@ -3,31 +3,22 @@
 #include "registry.h"
 
 int main(int argc, char** argv) {
-  if(argc != 5){
-    printf("usage: ./server [TcpPort] [UdpPort] [PipePath] [Permission]\n");
-    exit(EXIT_FAILURE);
-  }
-  int tcpSocket;
-  int tcpPort = atoi(argv[1]);
-  
-  int udpSocket;
-  int udpPort = atoi(argv[2]);
+    int tcpSocket, udpSocket;
 
-  const char* path = argv[3];
-  int permission = atoi(argv[4]);
+    if(argc != 5){
+        printf("usage: ./server [tcpPort] [udpPort] [pipePath] [permission]\n");
+        exit(EXIT_FAILURE);
+    }
 
-  if((tcpSocket = initTcpSocket(tcpPort)) < 0){
-    exit(EXIT_FAILURE);
-  }  
-  if((udpSocket = initUdpSocket(udpPort)) < 0){
-    exit(EXIT_FAILURE);
-  }
-  if((initPipe(path,permission))< 0){
-    exit(EXIT_FAILURE);
-  }
-  if(initSound()){
-    exit(EXIT_FAILURE);
-  }
-  printf("\nServer-configuration succeeded\n");
-  startConnectionHandle(&tcpSocket, &udpSocket, path);
+    const int tcpPort = atoi(argv[1]);
+    const int udpPort = atoi(argv[2]);
+    const char* path = argv[3];
+    const int permission = atoi(argv[4]);
+
+    if( (tcpSocket = initTcpSocket(tcpPort)) < 0 || (udpSocket = initUdpSocket(udpPort)) < 0 ||
+        (initPipe(path,permission)) < 0 || initSound()){
+        exit(EXIT_FAILURE);
+    }
+    printf("\nServer-configuration succeeded\n");
+    startConnectionHandle(&tcpSocket, &udpSocket, path);
 }

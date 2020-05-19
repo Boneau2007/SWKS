@@ -10,53 +10,6 @@ snd_pcm_access_t mode = SND_PCM_ACCESS_RW_INTERLEAVED;
 snd_pcm_uframes_t frames = 2;
 snd_pcm_t* pcmHandle;
 
-int main(int argc, char** argv){
-  if(argc > 1){
-    printf("usage: ./client\n");
-    return EXIT_FAILURE;
-  }else{
-    start();
-  }
-  return EXIT_SUCCESS;
-}
-
-void start(){
-  while(init != END){
-  init = dialog();
-  //init = 3; // Nur zum test
-    switch (init) {
-      case ECHOSERVER: printf("\nStart connection to Echo-Server now..\n");
-                       echoServiceHandle();
-                       break;
-      case SOUND: printf("\nStart Sound connection..\n");
-                  if(initSoundDevice(&pcmHandle,deviceName,channels,&samples, stream, format, mode, frames)==EXIT_FAILURE){
-                    printf("Could not set PCM-Device");
-                  }else{
-                    soundServiceHandle();
-                  }
-                  break;
-      case END: printf("\nClient geschlossen\n");
-                break;
-      default: printf("\nWrong input, must between 0 and 3");
-               break;
-    }
-  }
-}
-
-
-int dialog(){
-	printf("\n==========================");
-  printf("\n%i. Connect to Echo-Server", ECHOSERVER);
-  printf("\n%i. Speak to Server", SOUND);
-  printf("\n%i. Close Client", END);
-	printf("\n==========================");
-  int input = getInt("\nEnter Value: ");
-  if(input >= 0 && input <= 9){
-    return input;
-  }
-  return -1;
-}
-
 void echoServiceHandle(){
   struct sockaddr_in server;
   char* clientMessage = calloc(MAX_MESSAGE_SIZE, sizeof(char));
@@ -83,15 +36,14 @@ void echoServiceHandle(){
       printf("\nPlease insert a Message or [CLOSE] for close: ");
       fgets(clientMessage, MAX_MESSAGE_SIZE, stdin);
       fflush(stdin);
-      int len = strlen(clientMessage);
       
       if(strncmp(clientMessage, "CLOSE", 5) == 0){
         printf("Close connection..\n");
         break;
       }
 
-      write(socket, clientMessage, len);
-      if(recv(socket, serverMessage, MAX_MESSAGE_SIZE, 0)<0){
+      write(socket, clientMessage, strlen(clientMessage));
+      if(recv(socket, serverMessage, MAX_MESSAGE_SIZE, 0) < 0){
         printf("Server response timeout\n");
         break;
       }else{
@@ -113,7 +65,7 @@ void soundServiceHandle(){
   time_t count = getInt("\nHow many seconds do you want to Speak : ");
   time_t start = time(NULL);
   do{
-    if(snd_pcm_readi(pcmHandle, message, size)<0){
+    if(snd_pcm_readi(pcmHandle, message, size) < 0){
       snd_pcm_prepare(pcmHandle);
       printf("##### buffer underrun #####");
     }else{
@@ -155,4 +107,53 @@ int getInt(const char* message){
   fflush(stdin);
   value = atoi((char*)&value);
   return value;
+}
+
+int dialog(){
+  printf("\n==========================");
+  printf("\n%i. Connect to Echo-Server", ECHOSERVER);
+  printf("\n%i. Speak to Server", SOUND);
+  printf("\n%i. Close Client", END);
+  printf("\n==========================");
+  int input = getInt("\nEnter Value: ");
+  if(input >= 0 && input <= 9){
+    return input;
+  }
+  return -1;
+}
+
+void start(){
+  while(init != END){
+  init = dialog();
+  //init = 3; // Nur zum test
+  switch (init) {
+    case ECHOSERVER: printf("\nStart connection to Echo-Server now..\n");
+                     echoServiceHandle();
+                     break;
+		  
+    case SOUND:      printf("\nStart Sound connection..\n");
+                     if(initSoundDevice(&pcmHandle,deviceName,channels,&samples, stream, format, mode, frames)==EXIT_FAILURE){
+                       printf("Could not set PCM-Device");
+                     }else{
+                       soundServiceHandle();
+                     }
+                     break;
+		  
+    case END:        printf("\nClient geschlossen\n");
+                     break;
+		  
+    default:         printf("\nWrong input, must between 0 and 3");
+                     break;
+    }
+  }
+}
+
+int main(int argc, char** argv){
+  if(argc > 1){
+    printf("usage: ./client\n");
+    return EXIT_FAILURE;
+  }else{
+    start();
+  }
+  return EXIT_SUCCESS;
 }
